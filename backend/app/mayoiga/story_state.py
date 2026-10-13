@@ -1,4 +1,3 @@
-
 from dataclasses import dataclass, field
 
 from .character import Character
