@@ -45,6 +45,67 @@ class StoryGraph:
         if start_scene in self.graph:
             dfs(start_scene)
         return traversal_order
+
+    def can_reach_ending(self, start_scene, ending_scene):
+        distance = self.bfs_shortest_distance(start_scene, ending_scene)
+        return distance != -1
+
+    
+    def find_dead_ends(self, ending_scenes):
+        dead_ends = []
+
+        for scene_id, next_scenes in self.graph.items():
+            if not next_scenes and scene_id not in ending_scenes:
+                dead_ends.append(scene_id)
+
+        return dead_ends
+
+    def has_cycle(self):
+        visited = set()
+        recursion_stack = set()
+
+        def dfs(scene_id):
+            visited.add(scene_id)
+            recursion_stack.add(scene_id)
+
+            for next_scene in self.graph.get(scene_id, []):
+                if next_scene not in visited:
+                    if dfs(next_scene):
+                        return True
+                elif next_scene in recursion_stack:
+                    return True
+
+            recursion_stack.remove(scene_id)
+            return False
+
+        for scene_id in self.graph:
+            if scene_id not in visited:
+                if dfs(scene_id):
+                    return True
+
+        return False
+
+    
+    def find_all_paths(self, start_scene, target_scene):
+        if start_scene not in self.graph or target_scene not in self.graph:
+            return []
+
+        all_paths = []
+
+        def dfs(current_scene, current_path):
+            if current_scene == target_scene:
+                all_paths.append(current_path.copy())
+                return
+
+            for next_scene in self.graph.get(current_scene, []):
+                if next_scene not in current_path:
+                    current_path.append(next_scene)
+                    dfs(next_scene, current_path)
+                    current_path.pop()
+
+        dfs(start_scene, [start_scene])
+        return all_paths
+
     def display_graph(self):
         for scene, choices in self.graph.items():
             print(f"{scene}  → {choices}")
