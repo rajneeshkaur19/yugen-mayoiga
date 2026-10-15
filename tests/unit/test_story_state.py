@@ -1,4 +1,3 @@
-
 import pytest
 
 from backend.app.mayoiga.character import Character
@@ -186,3 +185,85 @@ def test_choice_cannot_be_made_after_ending():
         match="The story has already ended",
     ):
         state.make_choice("finish")
+
+
+def test_undo_restores_previous_scene():
+    state = StoryState(
+        story=create_test_story(),
+        character=create_test_character(),
+    )
+
+    state.make_choice("enter")
+    state.undo()
+
+    assert state.current_scene_id == "scene_1"
+    assert state.current_scene.id == "scene_1"
+
+
+def test_undo_restores_character_traits_and_emotions():
+    character = create_test_character()
+    state = StoryState(
+        story=create_test_story(),
+        character=character,
+    )
+
+    state.make_choice("enter")
+    state.undo()
+
+    assert character.emotions["fear"] == 40.0
+    assert character.traits["courage"] == 50.0
+
+
+def test_undo_restores_scene_history():
+    state = StoryState(
+        story=create_test_story(),
+        character=create_test_character(),
+    )
+
+    state.make_choice("enter")
+    state.undo()
+
+    assert state.history == ["scene_1"]
+
+
+def test_multiple_undos_restore_previous_states():
+    character = create_test_character()
+    state = StoryState(
+        story=create_test_story(),
+        character=character,
+    )
+
+    state.make_choice("enter")
+    state.make_choice("finish")
+
+    state.undo()
+    assert state.current_scene_id == "scene_2"
+    assert character.emotions["fear"] == 50.0
+
+    state.undo()
+    assert state.current_scene_id == "scene_1"
+    assert character.emotions["fear"] == 40.0
+    assert character.traits["courage"] == 50.0
+
+
+def test_undo_without_previous_choice_raises_error():
+    state = StoryState(
+        story=create_test_story(),
+        character=create_test_character(),
+    )
+
+    with pytest.raises(ValueError, match="Nothing to undo"):
+        state.undo()
+
+
+def test_invalid_choice_does_not_create_undo_state():
+    state = StoryState(
+        story=create_test_story(),
+        character=create_test_character(),
+    )
+
+    with pytest.raises(ValueError):
+        state.make_choice("missing")
+
+    with pytest.raises(ValueError, match="Nothing to undo"):
+        state.undo()
