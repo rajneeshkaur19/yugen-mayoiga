@@ -8,8 +8,7 @@ from dotenv import load_dotenv
 from sqlalchemy import engine_from_config, pool
 
 from backend.app.database.base import Base
-from backend.app.models.user import User
-from backend.app.models.story import Story
+import backend.app.models  # noqa: F401 — registers all 15 models with Base.metadata
 
 
 config = context.config
