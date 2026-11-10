@@ -20,9 +20,9 @@
 
 | | |
 |---|---|
-| 🚀 **Status** | In development: **Week 1 complete ✅**, now on **Week 2** (DSA and story graph) |
-| 🎯 **Next milestone** | **M1** (end of Week 2): engine and graph working in console |
-| 📄 **Documentation** | Version 1.2 |
+| 🚀 **Status** | In development: **Weeks 1-3 complete ✅**, now on **Week 4** (state engines) |
+| 🎯 **Next milestone** | **M2** (end of Week 4): full backend and persistent state |
+| 📄 **Documentation** | Version 1.3 |
 | 🎓 **Project type** | Major project, self-initiated, individual |
 | ⏱️ **Duration** | 8 weeks |
 | 🧰 **Stack** | React · FastAPI · PostgreSQL · Docker |
@@ -58,14 +58,16 @@ Mystery is kept on purpose: hinted, never fully explained.
 ## 📈 Current Progress
 
 ```text
-▰▱▱▱▱▱▱▱   1 of 8 weeks complete
+▰▰▰▱▱▱▱▱   3 of 8 weeks complete
 ```
 
 | | Week | Focus | Status |
 |:---:|:---:|---|---|
 | ✅ | 1 | Planning and core engine | **Complete** |
-| 🔄 | 2 | DSA and story graph | **In progress** |
-| ⬜ | 3-8 | Database, state engines, frontend, AI layer, aesthetics, final package | Upcoming |
+| ✅ | 2 | DSA and story graph | **Complete** (M1 reached) |
+| ✅ | 3 | Database and backend I | **Complete** |
+| 🔄 | 4 | State engines | **In progress** |
+| ⬜ | 5-8 | Frontend, AI layer, aesthetics, final package | Upcoming |
 
 ### ✅ Week 1: Planning and core engine (done)
 
@@ -78,24 +80,42 @@ Mystery is kept on purpose: hinted, never fully explained.
 
 **Deliverable:** approved documentation, repo, console prototype.
 
-### 🔄 Week 2: DSA and story graph (current)
+### ✅ Week 2: DSA and story graph (done)
 
-- [ ] Story graph (nodes and edges) with branching
-- [ ] Stack-based undo
-- [ ] Event queue and priority queue
-- [ ] BFS and DFS
-- [ ] Cycle detection
-- [ ] Reachable-ending check
-- [ ] Unit tests for all of the above
+- [x] Story graph (nodes and edges) with branching
+- [x] Stack-based undo
+- [x] Event queue and priority queue
+- [x] BFS and DFS
+- [x] Cycle detection
+- [x] Reachable-ending check
+- [x] Unit tests for all of the above
 
 **Deliverable:** tested graph and event modules, shown at **Milestone M1**.
 
+### ✅ Week 3: Database and backend I (done)
+
+- [x] PostgreSQL database designed and set up (3NF schema)
+- [x] Backend API structure in FastAPI
+- [x] REST API with persistence
+
+**Deliverable:** working REST API with persistence.
+
+### 🔄 Week 4: State engines (current)
+
+- [ ] Character, emotion, relationship and world engines
+- [ ] Ending engine
+- [ ] Dialogue tree
+- [ ] Memory retrieval (keyword version)
+- [ ] Rule-driven story running through the API, no AI yet
+
+**Deliverable:** rule-driven story via API, shown at **Milestone M2**.
+
 <details>
-<summary><b>🎬 M1 console demo plan (end of Week 2)</b></summary>
+<summary><b>🎬 M1 console demo (reached at end of Week 2)</b></summary>
 
 <br>
 
-A console demo will show each structure working on the actual story data, independent of the web app:
+The console demo showed each structure working on the actual story data, independent of the web app:
 
 1. Print the story graph as an adjacency list and run **BFS** to show the shortest path to every ending.
 2. Run **DFS** to list all paths and highlight any dead ends.
@@ -111,12 +131,12 @@ A console demo will show each structure working on the actual story data, indepe
 
 <br>
 
-- [ ] **Graph:** small hand-built graph with known shortest distances; BFS output matches the expected result
-- [ ] **Cycle detection:** one graph with a cycle, one without, and one whose only loop is marked `allow_loop`
-- [ ] **Reachability:** a graph with a deliberately unreachable ending must be reported
-- [ ] **Stack:** make N choices, undo N times, state equals the original
-- [ ] **Heap:** insert events in random order, they pop in priority order
-- [ ] **Top-k:** heap result matches a full sort on random data
+- [x] **Graph:** small hand-built graph with known shortest distances; BFS output matches the expected result
+- [x] **Cycle detection:** one graph with a cycle, one without, and one whose only loop is marked `allow_loop`
+- [x] **Reachability:** a graph with a deliberately unreachable ending must be reported
+- [x] **Stack:** make N choices, undo N times, state equals the original
+- [x] **Heap:** insert events in random order, they pop in priority order
+- [x] **Top-k:** heap result matches a full sort on random data
 - [ ] **LRU cache:** fixed get/put sequence with expected evictions *(built in Week 6)*
 
 </details>
@@ -194,11 +214,11 @@ Features are tiered. **Tier 1 must be completed**; Tier 2 and Tier 3 are added i
 - [ ] Character engine (traits, emotions, goals, secrets)
 - [ ] Emotion and relationship engines
 - [ ] World state engine
-- [ ] Story graph with branching, undo (stack) and conditional endings
+- [x] Story graph with branching, undo (stack) and conditional endings
 - [ ] Layered memory engine
 - [ ] Narrative planner and AI scene generation (with template fallback)
 - [ ] Basic consistency validator
-- [ ] PostgreSQL persistence
+- [x] PostgreSQL persistence
 - [ ] React story reader with choice buttons and character-state panel
 
 ### 🟨 Tier 2: Interactive and Japanese-aesthetic
@@ -365,20 +385,20 @@ All core DSA code is written **from scratch** inside the `algorithms/` folder, w
 | 🪟 **Sliding window** (bounded deque) | Short-term memory (last N events) | O(1) |
 
 <details>
-<summary><b>Algorithm files and the week they are built</b> (🔄 = current Week 2 work)</summary>
+<summary><b>Algorithm files and the week they are built</b> (✅ = done, 🔄 = current Week 4 work)</summary>
 
 <br>
 
-| File (`algorithms/`) | Contents | Built in |
-|---|---|---|
-| 🔄 `story_graph.py` | Graph class (adjacency list), add_scene, add_choice, get_choices(state) | Week 2 |
-| 🔄 `path_finder.py` | BFS, DFS, all_paths, cycle detection, reachability, dead-end check | Week 2 |
-| 🔄 `history_stack.py` | Stack-based undo with delta records | Week 2 |
-| 🔄 `priority_events.py` | Two-heap event system (scheduled and ready) and pending queue | Week 2 |
-| 🔄 `state_store.py` | Hash-map based state with clamping and effect application | Week 1-2 |
-| `dialogue_tree.py` | Tree node class and traversal | Week 4 |
-| `memory_retrieval.py` | Bounded deque, top-k heap retrieval, recency scoring | Week 4 (keyword), Week 6 (semantic) |
-| `lru_cache.py` | LRU cache from scratch | Week 6 |
+| File (`algorithms/`) | Contents | Built in | Status |
+|---|---|---|:---:|
+| `story_graph.py` | Graph class (adjacency list), add_scene, add_choice, get_choices(state) | Week 2 | ✅ |
+| `path_finder.py` | BFS, DFS, all_paths, cycle detection, reachability, dead-end check | Week 2 | ✅ |
+| `history_stack.py` | Stack-based undo with delta records | Week 2 | ✅ |
+| `priority_events.py` | Two-heap event system (scheduled and ready) and pending queue | Week 2 | ✅ |
+| `state_store.py` | Hash-map based state with clamping and effect application | Week 1-2 | ✅ |
+| `dialogue_tree.py` | Tree node class and traversal | Week 4 | 🔄 |
+| `memory_retrieval.py` | Bounded deque, top-k heap retrieval, recency scoring | Week 4 (keyword), Week 6 (semantic) | 🔄 |
+| `lru_cache.py` | LRU cache from scratch | Week 6 | ⬜ |
 
 </details>
 
@@ -522,21 +542,21 @@ Build order: **engine → database and API → UI → AI → polish.**
 | Week | Focus | Deliverable | Done |
 |:---:|---|---|:---:|
 | 1 | Planning and core engine | Approved documentation, repo, console prototype | ✅ |
-| 2 | DSA and story graph | Tested graph and event modules | 🔄 |
-| 3 | Database and backend I | Working REST API with persistence | ⬜ |
-| 4 | State engines | Rule-driven story via API, no AI yet | ⬜ |
+| 2 | DSA and story graph | Tested graph and event modules | ✅ |
+| 3 | Database and backend I | Working REST API with persistence | ✅ |
+| 4 | State engines | Rule-driven story via API, no AI yet | 🔄 |
 | 5 | Frontend I | Playable story in browser (template scenes) | ⬜ |
 | 6 | AI layer | AI-driven, validated scenes and free-text actions | ⬜ |
 | 7 | Interactive and Japanese-aesthetic features | Fully immersive UI | ⬜ |
 | 8 | Testing, stretch and documentation | Final submission package | ⬜ |
 
-| Milestone | When | Meaning |
-|:---:|---|---|
-| **M1** | End of Week 2 | Engine and graph work in console |
-| **M2** | End of Week 4 | Full backend and persistent state |
-| **M3** | End of Week 5 | Playable web app without AI |
-| **M4** | End of Week 6 | AI scenes plus validation and free text |
-| **M5** | End of Week 8 | Polished, tested, documented final project |
+| Milestone | When | Meaning | Done |
+|:---:|---|---|:---:|
+| **M1** | End of Week 2 | Engine and graph work in console | ✅ |
+| **M2** | End of Week 4 | Full backend and persistent state | 🔄 |
+| **M3** | End of Week 5 | Playable web app without AI | ⬜ |
+| **M4** | End of Week 6 | AI scenes plus validation and free text | ⬜ |
+| **M5** | End of Week 8 | Polished, tested, documented final project | ⬜ |
 
 <details>
 <summary><b>⚠️ Fallback rule if a week slips</b></summary>
