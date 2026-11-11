@@ -20,9 +20,9 @@
 
 | | |
 |---|---|
-| 🚀 **Status** | In development: **Week 1 complete ✅**, now on **Week 2** (DSA and story graph) |
-| 🎯 **Next milestone** | **M1** (end of Week 2): engine and graph working in console |
-| 📄 **Documentation** | Version 1.2 |
+| 🚀 **Status** | **Week 4 complete ✅** — Milestone **M2** (Full backend & persistent state) |
+| 🎯 **Next milestone** | **M3** (end of Week 5): interactive web frontend and dashboard |
+| 📄 **Documentation** | Version 1.4 |
 | 🎓 **Project type** | Major project, self-initiated, individual |
 | ⏱️ **Duration** | 8 weeks |
 | 🧰 **Stack** | React · FastAPI · PostgreSQL · Docker |
@@ -58,14 +58,16 @@ Mystery is kept on purpose: hinted, never fully explained.
 ## 📈 Current Progress
 
 ```text
-▰▱▱▱▱▱▱▱   1 of 8 weeks complete
+▰▰▰▰▱▱▱▱   4 of 8 weeks complete (Milestone M2)
 ```
 
 | | Week | Focus | Status |
 |:---:|:---:|---|---|
 | ✅ | 1 | Planning and core engine | **Complete** |
-| 🔄 | 2 | DSA and story graph | **In progress** |
-| ⬜ | 3-8 | Database, state engines, frontend, AI layer, aesthetics, final package | Upcoming |
+| ✅ | 2 | DSA and story graph | **Complete** |
+| ✅ | 3 | Database and backend APIs | **Complete** |
+| ✅ | 4 | State engines & persistent state (Milestone M2) | **Complete** |
+| ⬜ | 5-8 | Frontend, AI layer, aesthetics, final package | Upcoming |
 
 ### ✅ Week 1: Planning and core engine (done)
 
