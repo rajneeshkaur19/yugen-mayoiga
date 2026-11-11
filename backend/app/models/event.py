@@ -83,3 +83,8 @@ class Event(Base):
         JSONB,
         nullable=True,
     )
+
+    effects: Mapped[Optional[dict[str, Any]]] = mapped_column(
+        JSONB,
+        nullable=True,
+    )
