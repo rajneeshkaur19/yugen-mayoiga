@@ -1,4 +1,4 @@
-"""Choice API endpoints — CRUD for scene choices (story graph edges)."""
+﻿"""Choice API endpoints â€” CRUD for scene choices (story graph edges)."""
 
 from fastapi import APIRouter, Depends, HTTPException, Response, status
 from sqlalchemy.orm import Session
@@ -109,3 +109,4 @@ def remove_choice(
     if not deleted:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Choice not found")
     return Response(status_code=status.HTTP_204_NO_CONTENT)
+

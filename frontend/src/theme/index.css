@@ -1,0 +1,221 @@
+/**
+ * Yūgen Mayoiga — CSS Custom Properties
+ *
+ * Generated from tokens.js — the JS token file is the source of truth.
+ * This file exposes all tokens as CSS custom properties so they can be
+ * used in plain CSS, Tailwind's @apply, and inline style calculations.
+ *
+ * Import this file once in index.css with: @import './theme/index.css';
+ *
+ * Tailwind v4 reads these at build time via the @theme block below.
+ */
+
+/* ─── Tailwind v4 theme extension ──────────────────────────────────────── */
+@theme {
+  /* Colors */
+  --color-bg-obsidian:    #101317;
+  --color-bg-deep:        #171C21;
+  --color-bg-elevated:    #1B2228;
+  --color-bg-secondary:   #242C33;
+  --color-bg-border:      #343C43;
+
+  --color-text-primary:   #F1EEE8;
+  --color-text-secondary: #B5B2AC;
+  --color-text-muted:     #858A8D;
+  --color-text-inverse:   #171713;
+
+  --color-crimson:        #A33B42;
+  --color-crimson-deep:   #702B34;
+  --color-gold:           #C4AD88;
+  --color-gold-light:     #D9C9A8;
+  --color-mist:           #A9B6B9;
+  --color-moonlight:      #D7DCE0;
+
+  /* Typography */
+  --font-serif: "Cormorant Garamond", "Noto Serif JP", Georgia, serif;
+  --font-sans:  Inter, "Noto Sans JP", "Noto Sans Devanagari", "Noto Sans Gurmukhi", system-ui, sans-serif;
+
+  /* Border radius */
+  --radius-sm:   4px;
+  --radius-md:   6px;
+  --radius-lg:   10px;
+  --radius-xl:   14px;
+  --radius-2xl:  16px;
+
+  /* Transitions */
+  --transition-fast:   150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-normal: 250ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-scene:  600ms cubic-bezier(0, 0, 0.2, 1);
+  --transition-page:   350ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ─── Root custom properties ───────────────────────────────────────────── */
+:root {
+  /* Surfaces */
+  --bg-obsidian:    #101317;
+  --bg-deep:        #171C21;
+  --bg-elevated:    #1B2228;
+  --bg-secondary:   #242C33;
+  --bg-border:      #343C43;
+
+  /* Text */
+  --text-primary:   #F1EEE8;
+  --text-secondary: #B5B2AC;
+  --text-muted:     #858A8D;
+  --text-inverse:   #171713;
+
+  /* Accents */
+  --accent-crimson:       #A33B42;
+  --accent-crimson-deep:  #702B34;
+  --accent-gold:          #C4AD88;
+  --accent-gold-light:    #D9C9A8;
+  --accent-mist:          #A9B6B9;
+  --accent-moonlight:     #D7DCE0;
+
+  /* Semantic */
+  --semantic-success-bg:     #14251f;
+  --semantic-success-text:   #6ee7b7;
+  --semantic-success-border: #2d6a52;
+  --semantic-warning-bg:     #241d10;
+  --semantic-warning-text:   #fbbf24;
+  --semantic-warning-border: #6b4f10;
+  --semantic-error-bg:       #2a191b;
+  --semantic-error-text:     #fca5a5;
+  --semantic-error-border:   #7f2d35;
+  --semantic-info-bg:        #141b25;
+  --semantic-info-text:      #93c5fd;
+  --semantic-info-border:    #2a3f5a;
+
+  /* Typography */
+  --font-serif: "Cormorant Garamond", "Noto Serif JP", Georgia, serif;
+  --font-sans:  Inter, "Noto Sans JP", "Noto Sans Devanagari", "Noto Sans Gurmukhi", system-ui, sans-serif;
+
+  /* Spacing anchor */
+  --space-unit: 4px;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.4);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.5);
+  --shadow-lg: 0 8px 24px rgba(0,0,0,0.6);
+  --shadow-xl: 0 16px 48px rgba(0,0,0,0.7);
+
+  /* Z-index scale */
+  --z-raised:   10;
+  --z-dropdown: 100;
+  --z-sticky:   200;
+  --z-overlay:  300;
+  --z-modal:    400;
+  --z-drawer:   500;
+  --z-toast:    600;
+  --z-tooltip:  700;
+}
+
+/* ─── Base resets & document defaults ──────────────────────────────────── */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  /* Prevent font scaling in landscape while allowing user zoom */
+  -webkit-text-size-adjust: 100%;
+  scroll-behavior: smooth;
+}
+
+body {
+  min-height: 100dvh;
+  min-width: 320px;
+  background-color: var(--bg-obsidian);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  font-size: 0.9375rem;  /* 15px narrative base */
+  line-height: 1.6;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-synthesis: none;
+}
+
+/* ─── Selection ─────────────────────────────────────────────────────────── */
+::selection {
+  background-color: rgba(196, 173, 136, 0.25);
+  color: var(--text-primary);
+}
+
+/* ─── Focus ring ────────────────────────────────────────────────────────── */
+:focus-visible {
+  outline: 2px solid var(--accent-gold);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+/* ─── Scrollbar styling (webkit) ────────────────────────────────────────── */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg-obsidian);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--bg-border);
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--accent-gold);
+}
+
+/* ─── Typography base classes ───────────────────────────────────────────── */
+.font-serif  { font-family: var(--font-serif); }
+.font-sans   { font-family: var(--font-sans); }
+
+/* Narrative text — comfortable, unhurried reading */
+.narrative-text {
+  font-family: var(--font-serif);
+  font-size: 1.0625rem;    /* 17px */
+  line-height: 1.85;
+  color: var(--text-primary);
+  letter-spacing: 0.01em;
+}
+
+/* Eyebrow labels — spaced uppercase tracking */
+.eyebrow {
+  font-size: 0.6875rem;    /* 11px */
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  font-family: var(--font-sans);
+  font-weight: 500;
+}
+
+/* ─── Reduced motion ────────────────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ─── Locale-specific font overrides ───────────────────────────────────── */
+:lang(ja) {
+  font-family: "Noto Sans JP", var(--font-sans);
+  word-break: break-all;
+}
+:lang(ja) .font-serif {
+  font-family: "Noto Serif JP", var(--font-serif);
+}
+
+:lang(hi) {
+  font-family: "Noto Sans Devanagari", var(--font-sans);
+}
+
+:lang(pa) {
+  font-family: "Noto Sans Gurmukhi", var(--font-sans);
+}
