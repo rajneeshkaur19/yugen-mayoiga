@@ -20,8 +20,8 @@
 
 | | |
 |---|---|
-| 🚀 **Status** | In development: **Weeks 1-4 complete ✅**, now on **Week 5** (frontend I) |
-| 🎯 **Next milestone** | **M3** (end of Week 5): playable web app without AI |
+| 🚀 **Status** | In development: **Weeks 1-5 complete ✅**, now on **Week 6** (AI layer) |
+| 🎯 **Next milestone** | **M4** (end of Week 6): AI-driven, validated scenes and free-text actions |
 | 📄 **Documentation** | Version 1.4 |
 | 🎓 **Project type** | Major project, self-initiated, individual |
 | ⏱️ **Duration** | 8 weeks |
@@ -58,7 +58,7 @@ Mystery is kept on purpose: hinted, never fully explained.
 ## 📈 Current Progress
 
 ```text
-▰▰▰▰▱▱▱▱   4 of 8 weeks complete
+▰▰▰▰▰▱▱▱   5 of 8 weeks complete
 ```
 
 | | Week | Focus | Status |
@@ -67,8 +67,9 @@ Mystery is kept on purpose: hinted, never fully explained.
 | ✅ | 2 | DSA and story graph | **Complete** (M1 reached) |
 | ✅ | 3 | Database and backend I | **Complete** |
 | ✅ | 4 | State engines | **Complete** (M2 reached) |
-| 🔄 | 5 | Frontend I | **In progress** |
-| ⬜ | 6-8 | AI layer, aesthetics, final package | Upcoming |
+| ✅ | 5 | Frontend I | **Complete** (M3 reached) |
+| 🔄 | 6 | AI layer | **In progress** |
+| ⬜ | 7-8 | Interactive and Japanese-aesthetic features, final package | Upcoming |
 
 ### ✅ Week 1: Planning and core engine (done)
 
@@ -111,13 +112,13 @@ Mystery is kept on purpose: hinted, never fully explained.
 
 **Deliverable:** rule-driven story via API, shown at **Milestone M2**.
 
-### 🔄 Week 5: Frontend I (current)
+### ✅ Week 5: Frontend I (done)
 
-- [ ] React frontend set up (Vite, Tailwind CSS)
-- [ ] Signup and login screens connected to the API
-- [ ] Story creation wizard
-- [ ] Story reader with choice buttons and character-state panel
-- [ ] Playable story in the browser using template scenes (no AI yet)
+- [x] React frontend set up (Vite, Tailwind CSS)
+- [x] Signup and login screens connected to the API
+- [x] Story creation wizard
+- [x] Story reader with choice buttons and character-state panel
+- [x] Playable story in the browser using template scenes (no AI yet)
 
 **Deliverable:** playable story in browser (template scenes), shown at **Milestone M3**.
 
@@ -220,8 +221,8 @@ Features are tiered. **Tier 1 must be completed**; Tier 2 and Tier 3 are added i
 
 ### 🟥 Tier 1: Core (MVP)
 
-- [ ] Signup and login (JWT)
-- [ ] Story creation wizard (genre, setting, tone, season, protagonist, theme, length)
+- [x] Signup and login (JWT)
+- [x] Story creation wizard (genre, setting, tone, season, protagonist, theme, length)
 - [x] Character engine (traits, emotions, goals, secrets)
 - [x] Emotion and relationship engines
 - [x] World state engine
@@ -230,7 +231,7 @@ Features are tiered. **Tier 1 must be completed**; Tier 2 and Tier 3 are added i
 - [ ] Narrative planner and AI scene generation (with template fallback)
 - [ ] Basic consistency validator
 - [x] PostgreSQL persistence
-- [ ] React story reader with choice buttons and character-state panel
+- [x] React story reader with choice buttons and character-state panel
 
 ### 🟨 Tier 2: Interactive and Japanese-aesthetic
 
@@ -556,8 +557,8 @@ Build order: **engine → database and API → UI → AI → polish.**
 | 2 | DSA and story graph | Tested graph and event modules | ✅ |
 | 3 | Database and backend I | Working REST API with persistence | ✅ |
 | 4 | State engines | Rule-driven story via API, no AI yet | ✅ |
-| 5 | Frontend I | Playable story in browser (template scenes) | 🔄 |
-| 6 | AI layer | AI-driven, validated scenes and free-text actions | ⬜ |
+| 5 | Frontend I | Playable story in browser (template scenes) | ✅ |
+| 6 | AI layer | AI-driven, validated scenes and free-text actions | 🔄 |
 | 7 | Interactive and Japanese-aesthetic features | Fully immersive UI | ⬜ |
 | 8 | Testing, stretch and documentation | Final submission package | ⬜ |
 
@@ -565,8 +566,8 @@ Build order: **engine → database and API → UI → AI → polish.**
 |:---:|---|---|:---:|
 | **M1** | End of Week 2 | Engine and graph work in console | ✅ |
 | **M2** | End of Week 4 | Full backend and persistent state | ✅ |
-| **M3** | End of Week 5 | Playable web app without AI | 🔄 |
-| **M4** | End of Week 6 | AI scenes plus validation and free text | ⬜ |
+| **M3** | End of Week 5 | Playable web app without AI | ✅ |
+| **M4** | End of Week 6 | AI scenes plus validation and free text | 🔄 |
 | **M5** | End of Week 8 | Polished, tested, documented final project | ⬜ |
 
 <details>
