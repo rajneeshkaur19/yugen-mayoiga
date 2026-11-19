@@ -10,6 +10,7 @@ from backend.app.api.scenes import router as scenes_router
 from backend.app.api.state import router as state_router
 from backend.app.api.stories import router as stories_router
 from backend.app.api.world_state import router as world_state_router
+from backend.app.api.ai import router as ai_router
 
 app = FastAPI(
     title="Yūgen Mayoiga",
@@ -27,6 +28,7 @@ app.include_router(relationships_router)
 app.include_router(world_state_router)
 app.include_router(endings_router)
 app.include_router(state_router)
+app.include_router(ai_router)
 
 
 @app.get("/")

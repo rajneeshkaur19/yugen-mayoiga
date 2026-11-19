@@ -1,27 +1,48 @@
-function App() {
-  return (
-    <main className="min-h-screen flex items-center justify-center px-6">
-      <section className="max-w-xl text-center">
-        <p className="text-sm uppercase tracking-[0.4em] text-amber-200/60 mb-5">
-          An interactive narrative experience
-        </p>
+import { Navigate, Route, Routes } from 'react-router-dom'
+import { useAuth } from './context/AuthContext'
+import LandingPage from './pages/Landing/LandingPage'
+import LoginPage from './pages/LoginPage'
+import RegisterPage from './pages/RegisterPage'
+import ForgotPasswordPage from './pages/ForgotPasswordPage'
+import ResetPasswordPage from './pages/ResetPasswordPage'
+import DashboardPage from './pages/DashboardPage'
+import CreateStoryPage from './pages/CreateStoryPage'
+import StoryReaderPage from './pages/StoryReaderPage'
+import ProtectedRoute from './components/ProtectedRoute'
 
-        <h1 className="text-5xl md:text-7xl font-serif tracking-wide">
-          Yugen Mayoiga
-        </h1>
+function RootRoute() {
+  const { user, loading } = useAuth()
 
-        <p className="mt-6 text-gray-400 leading-relaxed">
-          Every choice leaves a trace. Every story has a consequence.
-        </p>
-
-        <div className="mt-10">
-          <span className="text-xs tracking-widest uppercase text-amber-200/50">
-            M3 · Frontend development
-          </span>
+  if (loading) {
+    return (
+      <main className="flex min-h-screen items-center justify-center bg-[#101317] text-sm text-[#858A8D]">
+        <div className="flex items-center gap-3">
+          <div className="h-2 w-2 rounded-full bg-[#A33B42] animate-ping" />
+          <span>Entering the sanctuary...</span>
         </div>
-      </section>
-    </main>
-  )
+      </main>
+    )
+  }
+
+  if (user) {
+    return <Navigate to="/dashboard" replace />
+  }
+
+  return <LandingPage />
 }
 
-export default App
+export default function App() {
+  return (
+    <Routes>
+      <Route path="/" element={<RootRoute />} />
+      <Route path="/login" element={<LoginPage />} />
+      <Route path="/register" element={<RegisterPage />} />
+      <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+      <Route path="/reset-password" element={<ResetPasswordPage />} />
+      <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
+      <Route path="/stories/new" element={<ProtectedRoute><CreateStoryPage /></ProtectedRoute>} />
+      <Route path="/stories/:storyId" element={<ProtectedRoute><StoryReaderPage /></ProtectedRoute>} />
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
+  )
+}

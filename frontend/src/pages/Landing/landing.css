@@ -1,0 +1,59 @@
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=Inter:wght@300;400;500;600;700&family=Noto+Serif+JP:wght@400;600&family=Noto+Sans+Devanagari:wght@400;500;600&family=Noto+Sans+Gurmukhi:wght@400;500;600&display=swap');
+
+.font-cinematic {
+  font-family: 'Cormorant Garamond', 'Noto Serif JP', Georgia, serif;
+}
+
+.font-sans-ui {
+  font-family: 'Inter', 'Noto Sans JP', 'Noto Sans Devanagari', 'Noto Sans Gurmukhi', system-ui, -apple-system, sans-serif;
+}
+
+/* Subtle atmospheric drift for mist & lantern glow */
+@keyframes ambientGlow {
+  0%, 100% {
+    opacity: 0.65;
+    filter: drop-shadow(0 0 25px rgba(196, 173, 136, 0.25));
+  }
+  50% {
+    opacity: 0.95;
+    filter: drop-shadow(0 0 45px rgba(196, 173, 136, 0.45));
+  }
+}
+
+@keyframes slowMist {
+  0% {
+    transform: translateX(0) scale(1);
+    opacity: 0.35;
+  }
+  50% {
+    transform: translateX(-3%) scale(1.04);
+    opacity: 0.55;
+  }
+  100% {
+    transform: translateX(0) scale(1);
+    opacity: 0.35;
+  }
+}
+
+.animate-ambient-glow {
+  animation: ambientGlow 6s ease-in-out infinite;
+}
+
+.animate-slow-mist {
+  animation: slowMist 18s ease-in-out infinite;
+}
+
+/* Atmospheric custom scrollbar */
+.landing-container::-webkit-scrollbar {
+  width: 6px;
+}
+.landing-container::-webkit-scrollbar-track {
+  background: #101317;
+}
+.landing-container::-webkit-scrollbar-thumb {
+  background: #343C43;
+  border-radius: 3px;
+}
+.landing-container::-webkit-scrollbar-thumb:hover {
+  background: #A33B42;
+}

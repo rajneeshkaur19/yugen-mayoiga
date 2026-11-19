@@ -33,3 +33,5 @@ __all__ = [
     "UserEnding",
     "WorldState",
 ]
+
+from backend.app.models.password_reset_token import PasswordResetToken
