@@ -10,6 +10,7 @@ export default function MemoriesModal({
 }) {
   const [memories, setMemories] = useState([])
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
   const [selectedMemory, setSelectedMemory] = useState(null)
 
   // Filters & Sorting state
@@ -23,15 +24,17 @@ export default function MemoriesModal({
 
     async function fetchMemories() {
       setLoading(true)
+      setError('')
       try {
         const data = await memoriesApi.list(storyId)
         if (active) {
           const list = Array.isArray(data) ? data : []
-          setMemories(list.length ? list : fallbackMemories)
+          setMemories(list)
         }
-      } catch {
+      } catch (err) {
         if (active) {
-          setMemories(fallbackMemories)
+          setMemories(Array.isArray(runtimeMemories) ? runtimeMemories : [])
+          setError(err?.message || 'Unable to retrieve character memories.')
         }
       } finally {
         if (active) setLoading(false)
@@ -40,38 +43,7 @@ export default function MemoriesModal({
 
     fetchMemories()
     return () => { active = false }
-  }, [isOpen, storyId])
-
-  // Realistic story memories matching backend schema
-  const fallbackMemories = runtimeMemories.length ? runtimeMemories : [
-    {
-      id: 1,
-      event: 'The Vow in the Rain: Before the locked wooden doors, you refused to abandon the threshold as the bell rang.',
-      importance: 85,
-      type: 'emotional',
-      emotional_weight: 40,
-      created_turn: 1,
-      status: 'gilded',
-    },
-    {
-      id: 2,
-      event: 'The Locked Screen: A decision in the western corridor that permanently barred the return pathway.',
-      importance: 95,
-      type: 'player_choice',
-      emotional_weight: -25,
-      created_turn: 2,
-      status: 'cracked',
-    },
-    {
-      id: 3,
-      event: 'The Timetable Inscription: You uncovered the fading ink noting that some doors open only when remembered.',
-      importance: 60,
-      type: 'short_term',
-      emotional_weight: 15,
-      created_turn: 3,
-      status: 'normal',
-    },
-  ]
+  }, [isOpen, storyId, runtimeMemories])
 
   // Filter and sort computation
   const filteredMemories = useMemo(() => {

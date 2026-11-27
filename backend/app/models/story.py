@@ -1,5 +1,6 @@
 
 from datetime import datetime
+from typing import Optional
 
 from sqlalchemy import (
     BigInteger,
@@ -72,6 +73,17 @@ class Story(Base):
     length: Mapped[str] = mapped_column(
         String(20),
         nullable=False,
+    )
+
+    story_language: Mapped[str] = mapped_column(
+        String(20),
+        nullable=False,
+        server_default="English",
+    )
+
+    cover_image_url: Mapped[Optional[str]] = mapped_column(
+        String(500),
+        nullable=True,
     )
 
     status: Mapped[str] = mapped_column(

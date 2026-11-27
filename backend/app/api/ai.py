@@ -1,4 +1,5 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, status
+
 from backend.app.api.auth import get_current_user
 from backend.app.models.user import User
 from backend.app.schemas.ai import (
@@ -10,6 +11,15 @@ from backend.app.services.image_generation_service import (
 )
 
 router = APIRouter(prefix="/ai", tags=["AI & Image Generation"])
+
+# NOTE: Narrative, choice, action and interpret endpoints are served by the
+# stories router in backend/app/api/state.py at:
+#   POST /stories/{story_id}/generate-narrative
+#   GET  /stories/{story_id}/dynamic-choices
+#   POST /stories/{story_id}/ai-action
+#   POST /stories/{story_id}/interpret-action
+# The /ai/stories/{story_id}/... mirrors have been removed to avoid duplicate
+# route registration.
 
 
 @router.post(

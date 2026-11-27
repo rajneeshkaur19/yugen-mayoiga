@@ -52,8 +52,9 @@ export default function EndingScreen({
         {/* Background Artwork Layer with Deep Contrast & Vignette */}
         <div className="absolute inset-0 z-0 overflow-hidden">
           <img
-            src="/assets/backgrounds/mayoiga-estate-night.png"
+            src={currentScene?.scene_image_url || story?.cover_image_url || '/assets/backgrounds/mayoiga-estate-night.png'}
             alt="The Final Scene"
+            onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = '/assets/backgrounds/mayoiga-estate-night.png' }}
             className="h-full w-full object-cover object-center filter brightness-85 contrast-125 scale-105"
           />
           {/* Layered Cinematic Vignettes */}

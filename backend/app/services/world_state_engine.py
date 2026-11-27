@@ -50,6 +50,9 @@ def set_world_var(
     value: Any,
 ) -> WorldState:
     """Set or update a single world variable."""
+    if not isinstance(key, str) or not key.strip():
+        raise ValueError("World state variable key must be a non-empty string.")
+    key = key.strip()
     record = db.scalar(
         select(WorldState).where(
             WorldState.story_id == story_id,
@@ -65,9 +68,11 @@ def set_world_var(
             updated_at=now,
         )
         db.add(record)
+        db.flush()
     else:
         record.value = value
         record.updated_at = now
+        db.flush()
 
     return record
 

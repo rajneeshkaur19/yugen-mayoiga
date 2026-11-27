@@ -12,6 +12,7 @@ from backend.app.schemas.character import (
     CharacterTraitsRead,
     CharacterUpdate,
 )
+from backend.app.services.image_generation_service import generate_character_portrait
 from backend.app.services.character_service import (
     create_character,
     delete_character,
@@ -146,3 +147,44 @@ def set_character_traits(
     if traits is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Character not found")
     return traits
+
+
+@router.post("/{character_id}/generate-portrait", response_model=CharacterRead, status_code=status.HTTP_200_OK)
+def generate_portrait_for_character(
+    story_id: int,
+    character_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Generate and persist an ink-wash gothic portrait for the given character.
+
+    If portrait_image_url is already present, returns it immediately without consuming AI quota.
+    """
+    story = _require_story(story_id, current_user, db)
+    char = get_character(db, story_id, character_id)
+    if char is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Character not found")
+
+    if char.portrait_image_url:
+        return char
+
+    result = generate_character_portrait(
+        name=char.name,
+        role=char.role,
+        visual_description=char.visual_description,
+        visual_prompt_anchor=char.visual_prompt_anchor,
+        background=char.background,
+        tone=getattr(story, "tone", None),
+        genre=getattr(story, "genre", None),
+    )
+
+    if result.success and result.image_url:
+        try:
+            char.portrait_image_url = result.image_url
+            db.commit()
+            db.refresh(char)
+        except Exception:
+            db.rollback()
+            raise
+
+    return char

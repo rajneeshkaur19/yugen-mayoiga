@@ -29,8 +29,15 @@ export function AuthProvider({ children }) {
 
     restoreSession()
 
+    function handleUnauthorized() {
+      clearToken()
+      if (active) setUser(null)
+    }
+    window.addEventListener('yugen:unauthorized', handleUnauthorized)
+
     return () => {
       active = false
+      window.removeEventListener('yugen:unauthorized', handleUnauthorized)
     }
   }, [])
 

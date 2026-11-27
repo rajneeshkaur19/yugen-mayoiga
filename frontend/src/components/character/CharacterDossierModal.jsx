@@ -12,6 +12,9 @@ export default function CharacterDossierModal({
   const [characterMemories, setCharacterMemories] = useState([])
   const [loadingExtras, setLoadingExtras] = useState(false)
   const [selectedIndex, setSelectedIndex] = useState(0)
+  const [generatingPortrait, setGeneratingPortrait] = useState(false)
+  const [portraitError, setPortraitError] = useState(null)
+  const [portraitImgError, setPortraitImgError] = useState(false)
 
   // Fetch deeper character records & memories if storyId is available
   useEffect(() => {
@@ -41,8 +44,84 @@ export default function CharacterDossierModal({
     return () => { active = false }
   }, [isOpen, storyId])
 
+  useEffect(() => {
+    setPortraitImgError(false)
+    setPortraitError(null)
+  }, [selectedIndex])
+
+  async function handleGeneratePortrait(characterId) {
+    if (!storyId || !characterId || generatingPortrait) return
+    setGeneratingPortrait(true)
+    setPortraitError(null)
+    setPortraitImgError(false)
+    try {
+      const updated = await charactersApi.generatePortrait(storyId, characterId)
+      if (updated) {
+        setDbCharacters((prev) =>
+          prev.map((c) => (String(c.id) === String(characterId) ? { ...c, ...updated } : c))
+        )
+      }
+    } catch (err) {
+      setPortraitError(err.message || 'Portrait generation unavailable.')
+    } finally {
+      setGeneratingPortrait(false)
+    }
+  }
+
   // Combine runtime characters with any database records
   const characterList = useMemo(() => {
+    // If DB characters exist, they form the primary source of truth
+    if (dbCharacters && dbCharacters.length > 0) {
+      return dbCharacters.map((dc) => {
+        const runtimeMatch = Object.values(characters || {}).find(
+          (c) => String(c.id) === String(dc.id) || c.name?.toLowerCase() === dc.name?.toLowerCase()
+        )
+
+        const trustVal = runtimeMatch?.emotions?.trust ?? (runtimeMatch?.trust ?? 55)
+        const fearVal = runtimeMatch?.emotions?.fear ?? (runtimeMatch?.fear ?? 35)
+        const affectionVal = runtimeMatch?.emotions?.affection ?? (runtimeMatch?.affection ?? 60)
+        const suspicionVal = runtimeMatch?.emotions?.suspicion ?? (runtimeMatch?.suspicion ?? 30)
+
+        let statusTag = 'Watchful & Reserved'
+        if (fearVal >= 55 && trustVal < 45) statusTag = 'Fearful & Guarded'
+        else if (trustVal >= 65 && fearVal < 40) statusTag = 'Trusting & Allied'
+        else if (suspicionVal >= 60) statusTag = 'Guarded & Calculating'
+        else if (fearVal >= 60) statusTag = 'Trembling in Silence'
+
+        return {
+          id: dc.id,
+          dbId: dc.id,
+          name: dc.name,
+          role: dc.role || 'Inhabitant of Mayoiga',
+          statusTag,
+          background: dc.background || 'A presence that has lingered in this mountain sanctuary.',
+          visual_description: dc.visual_description,
+          visual_prompt_anchor: dc.visual_prompt_anchor,
+          portrait_image_url: dc.portrait_image_url,
+          personality:
+            runtimeMatch?.personality ||
+            (dc.role?.includes('Maiden') || dc.role?.includes('Archivist')
+              ? 'Intuitive, easily unsettled by shifting corridors, bound by an old vow.'
+              : 'Solemn, unwavering, measuring every action against ancient customs.'),
+          behavior:
+            dc.visual_description ||
+            runtimeMatch?.behavior ||
+            runtimeMatch?.observed_behavior ||
+            'Stands silently near the threshold; listens to the sound of rainfall on weathered tiles.',
+          emotions: {
+            trust: trustVal,
+            fear: fearVal,
+            affection: affectionVal,
+            suspicion: suspicionVal,
+          },
+          traits: dc.traits || null,
+          fears: dc.fears?.length ? dc.fears : ['The breaking of the sacred threshold seals'],
+          secrets: dc.secrets?.length ? dc.secrets : ['Holds an unspoken vow connected to this mountain.'],
+          kanji: dc.role?.includes('Maiden') || dc.role?.includes('Archivist') ? '信' : '護',
+        }
+      })
+    }
+
     const runtimeEntries = Object.entries(characters || {})
 
     if (runtimeEntries.length > 0) {
@@ -65,6 +144,7 @@ export default function CharacterDossierModal({
 
         return {
           id,
+          dbId: dbMatch?.id || (typeof id === 'number' ? id : null),
           name: c.name || `Character ${id}`,
           role: c.role || dbMatch?.role || 'Inhabitant of Mayoiga',
           statusTag,
@@ -72,12 +152,16 @@ export default function CharacterDossierModal({
             dbMatch?.background ||
             c.background ||
             'A presence that has lingered in this mountain estate since before the lanterns were first kindled.',
+          visual_description: dbMatch?.visual_description || c.visual_description,
+          visual_prompt_anchor: dbMatch?.visual_prompt_anchor || c.visual_prompt_anchor,
+          portrait_image_url: dbMatch?.portrait_image_url || c.portrait_image_url,
           personality:
             c.personality ||
             (c.role?.includes('Companion')
               ? 'Intuitive, easily unsettled by shifting doors, bound by an old vow.'
               : 'Solemn, unwavering, counting keys that no longer open any doors.'),
           behavior:
+            dbMatch?.visual_description ||
             c.behavior ||
             c.observed_behavior ||
             (c.role?.includes('Companion')
@@ -224,6 +308,71 @@ export default function CharacterDossierModal({
           <div className="grid gap-8 lg:grid-cols-12 items-start">
             {/* ─── LEFT COLUMN: Identity, Background & Observations (Col 1-5) ─── */}
             <div className="lg:col-span-5 space-y-6">
+              {/* Character Portrait Card */}
+              <div className="relative rounded-2xl border border-white/10 bg-[#101317] p-4 shadow-xl overflow-hidden group">
+                <div className="relative h-64 w-full rounded-xl overflow-hidden bg-[#171C21] border border-white/5 flex items-center justify-center">
+                  {current.portrait_image_url && !portraitImgError ? (
+                    <img
+                      src={current.portrait_image_url}
+                      alt={current.name}
+                      className="h-full w-full object-cover object-top transition-transform duration-700 group-hover:scale-105 filter brightness-95 contrast-110"
+                      onError={() => setPortraitImgError(true)}
+                    />
+                  ) : (
+                    <div className="flex flex-col items-center justify-center text-center p-6 space-y-3">
+                      <div className="flex h-16 w-16 items-center justify-center rounded-full border border-[#C4AD88]/30 bg-[#C4AD88]/10 text-2xl font-cinematic text-[#C4AD88]">
+                        {current.kanji || '画'}
+                      </div>
+                      <div className="space-y-1">
+                        <p className="text-xs font-cinematic text-[#F1EEE8] tracking-wide">
+                          {current.visual_prompt_anchor || `${current.name} · ${current.role}`}
+                        </p>
+                        <p className="text-[10px] text-[#858A8D] font-mono">
+                          Portrait not yet inscribed in the archive.
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Gradient vignette */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/20 pointer-events-none" />
+
+                  {/* Kanji Seal Badge in Corner */}
+                  <div className="absolute top-3 left-3 flex items-center gap-1.5 rounded bg-black/60 backdrop-blur-md px-2 py-0.5 border border-white/10 text-[10px] font-mono text-[#C4AD88]">
+                    <span>{current.kanji || '印'}</span>
+                    <span>{current.role?.split('·')[0].trim()}</span>
+                  </div>
+
+                  {/* On-Demand Manifest Button */}
+                  <div className="absolute bottom-3 right-3 z-10">
+                    <button
+                      type="button"
+                      disabled={generatingPortrait || !storyId || !current.dbId}
+                      onClick={() => handleGeneratePortrait(current.dbId || current.id)}
+                      className="inline-flex items-center gap-1.5 rounded-lg border border-[#A33B42] bg-[#A33B42]/90 hover:bg-[#702B34] px-3 py-1.5 text-[11px] font-semibold text-[#F1EEE8] transition shadow-lg backdrop-blur-sm disabled:opacity-50"
+                    >
+                      {generatingPortrait ? (
+                        <>
+                          <span className="inline-block h-2.5 w-2.5 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                          <span>Inscribing…</span>
+                        </>
+                      ) : (
+                        <>
+                          <span>✨</span>
+                          <span>{current.portrait_image_url ? 'Repaint' : 'Manifest Portrait'}</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </div>
+
+                {portraitError && (
+                  <p className="mt-2 text-[10px] text-[#A33B42] text-center font-mono">
+                    {portraitError}
+                  </p>
+                )}
+              </div>
+
               {/* Identity Box */}
               <div className="rounded-2xl border border-white/10 bg-[#101317] p-6 shadow-inner relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-[#C4AD88]/10 via-transparent to-transparent pointer-events-none" />
@@ -252,17 +401,22 @@ export default function CharacterDossierModal({
                 </p>
               </div>
 
-              {/* Observed Physical Nuance */}
-              <div className="rounded-xl border border-white/10 bg-[#101317] p-5 space-y-2">
+              {/* Observed Physical Nuance & Visual Profile */}
+              <div className="rounded-xl border border-white/10 bg-[#101317] p-5 space-y-3">
                 <div className="flex items-center gap-2">
                   <span className="text-xs text-[#C4AD88]">👁</span>
                   <span className="text-[10px] uppercase font-mono tracking-wider text-[#858A8D]">
-                    Observed Physical Nuance
+                    Visual Nuance & Attire
                   </span>
                 </div>
                 <p className="text-xs text-[#D7DCE0] leading-relaxed">
-                  {current.behavior}
+                  {current.visual_description || current.behavior}
                 </p>
+                {current.visual_prompt_anchor && (
+                  <p className="text-[10px] font-mono text-[#858A8D] border-t border-white/5 pt-2">
+                    <span className="text-[#C4AD88]">Visual Anchor:</span> {current.visual_prompt_anchor}
+                  </p>
+                )}
               </div>
 
               {/* Fears & Secrets (from backend) */}

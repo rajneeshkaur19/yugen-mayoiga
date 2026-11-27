@@ -25,6 +25,7 @@ def create_scene(db: Session, story_id: int, data: SceneCreate) -> Scene:
         location=data.location,
         mood=data.mood,
         haiku=data.haiku,
+        scene_image_url=data.scene_image_url,
         is_ending=data.is_ending,
     )
     try:

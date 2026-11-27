@@ -78,6 +78,21 @@ class Character(Base):
         server_default=text("''"),
     )
 
+    portrait_image_url: Mapped[Optional[str]] = mapped_column(
+        String(500),
+        nullable=True,
+    )
+
+    visual_description: Mapped[Optional[str]] = mapped_column(
+        Text,
+        nullable=True,
+    )
+
+    visual_prompt_anchor: Mapped[Optional[str]] = mapped_column(
+        String(300),
+        nullable=True,
+    )
+
     goals: Mapped[list[Any]] = mapped_column(
         JSONB,
         nullable=False,
