@@ -1,26 +1,28 @@
 import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
+import { useLanguage } from '../../context/LanguageContext'
+import { feedbackApi } from '../../api/client'
 import './landing.css'
 
 export default function LandingPage() {
   const { user } = useAuth()
   const navigate = useNavigate()
+  const { langCode, setLanguageCode, languages, t } = useLanguage()
+  const selectedLanguage = langCode
+  const setSelectedLanguage = setLanguageCode
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-  const [selectedLanguage, setSelectedLanguage] = useState(() => {
-    const saved = localStorage.getItem('yugen_ui_language')
-    return ['EN', 'JA', 'HI', 'FR'].includes(saved) ? saved : 'EN'
-  })
   const [langMenuOpen, setLangMenuOpen] = useState(false)
   const [activeStoryPreview, setActiveStoryPreview] = useState(0)
 
-  // Language options supported
-  const languages = [
-    { code: 'EN', label: 'English', native: 'English' },
-    { code: 'JA', label: 'Japanese', native: '日本語' },
-    { code: 'HI', label: 'Hindi', native: 'हिन्दी' },
-    { code: 'FR', label: 'French', native: 'Français' },
-  ]
+  // Feedback form state
+  const [feedbackType, setFeedbackType] = useState('Suggestion')
+  const [feedbackSubject, setFeedbackSubject] = useState('')
+  const [feedbackMessage, setFeedbackMessage] = useState('')
+  const [feedbackName, setFeedbackName] = useState('')
+  const [feedbackEmail, setFeedbackEmail] = useState('')
+  const [feedbackStatus, setFeedbackStatus] = useState('')
+  const [feedbackSubmitting, setFeedbackSubmitting] = useState(false)
 
   // If already authenticated and visits, give convenient jump or auto redirect
   useEffect(() => {
@@ -66,6 +68,44 @@ export default function LandingPage() {
     },
   ]
 
+  async function handleFeedbackSubmit(e) {
+    e.preventDefault()
+    if (feedbackSubmitting) return
+    if (!feedbackSubject.trim() || feedbackSubject.trim().length < 2) {
+      setFeedbackStatus('error_empty')
+      return
+    }
+    if (!feedbackMessage.trim() || feedbackMessage.trim().length < 5) {
+      setFeedbackStatus('error_empty')
+      return
+    }
+    setFeedbackSubmitting(true)
+    setFeedbackStatus('')
+    try {
+      await feedbackApi.submit({
+        feedback_type: feedbackType,
+        subject: feedbackSubject.trim(),
+        message: feedbackMessage.trim(),
+        name: feedbackName.trim() || undefined,
+        email: feedbackEmail.trim() || undefined,
+      })
+      setFeedbackStatus('success')
+      setFeedbackSubject('')
+      setFeedbackMessage('')
+      setFeedbackName('')
+      setFeedbackEmail('')
+    } catch (err) {
+      const msg = err.message || ''
+      if (msg.includes('429') || msg.toLowerCase().includes('rate limit') || msg.toLowerCase().includes('too many')) {
+        setFeedbackStatus('rate_limit')
+      } else {
+        setFeedbackStatus('error')
+      }
+    } finally {
+      setFeedbackSubmitting(false)
+    }
+  }
+
   return (
     <div className="landing-container min-h-screen bg-[#101317] text-[#F1EEE8] font-sans-ui selection:bg-[#A33B42] selection:text-white">
       {/* ─────────────────────────────────────────────────────────────
@@ -94,19 +134,16 @@ export default function LandingPage() {
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-[#B5B2AC]">
             <a href="#about" className="transition hover:text-[#C4AD88]">
-              About
+              {t.nav.about}
             </a>
             <a href="#choices" className="transition hover:text-[#C4AD88]">
-              Branching
-            </a>
-            <a href="#characters" className="transition hover:text-[#C4AD88]">
-              Characters
-            </a>
-            <a href="#world" className="transition hover:text-[#C4AD88]">
-              World State
+              {t.nav.features}
             </a>
             <a href="#explore" className="transition hover:text-[#C4AD88]">
-              Explore
+              {t.nav.themes}
+            </a>
+            <a href="#feedback" className="transition hover:text-[#C4AD88]">
+              {t.nav.feedback}
             </a>
           </nav>
 
@@ -153,7 +190,7 @@ export default function LandingPage() {
               to="/login"
               className="text-sm font-medium text-[#D7DCE0] transition hover:text-[#C4AD88] px-3 py-1.5"
             >
-              Sign In
+              {t.nav.signIn}
             </Link>
 
             {/* Primary Get Started CTA */}
@@ -161,7 +198,7 @@ export default function LandingPage() {
               to="/register"
               className="rounded-lg border border-[#A33B42]/50 bg-[#A33B42] px-5 py-2 text-sm font-semibold text-[#F1EEE8] transition-all hover:bg-[#702B34] hover:shadow-[0_0_20px_rgba(163,59,66,0.5)]"
             >
-              Begin Your Story
+              {t.nav.createStory}
             </Link>
           </div>
 
@@ -239,23 +276,23 @@ export default function LandingPage() {
           <div className="mb-6 inline-flex items-center gap-3 rounded-full border border-[#C4AD88]/30 bg-[#101317]/80 px-4 py-1.5 backdrop-blur-md">
             <span className="h-1.5 w-1.5 rounded-full bg-[#A33B42] animate-pulse" />
             <span className="font-sans-ui text-xs tracking-[0.3em] uppercase text-[#C4AD88]">
-              Interactive Branching Narrative
+              {t.hero.eyebrow}
             </span>
             <span className="text-xs text-[#858A8D]">· 幽玄 迷い家</span>
           </div>
 
           {/* Main Title */}
           <h1 className="font-cinematic text-5xl font-semibold tracking-wider text-[#F1EEE8] sm:text-7xl lg:text-8xl drop-shadow-[0_4px_30px_rgba(0,0,0,0.8)]">
-            YŪGEN MAYOIGA
+            {t.hero.title}
           </h1>
 
           {/* Atmospheric Tagline */}
           <p className="mx-auto mt-6 max-w-2xl font-cinematic text-xl italic tracking-wide text-[#D7DCE0] sm:text-2xl">
-            “Every choice leaves something behind.”
+            “{t.footer.tagline}”
           </p>
 
           <p className="mx-auto mt-4 max-w-xl text-sm leading-relaxed text-[#B5B2AC]">
-            Step across the threshold of a forgotten Japanese mountain sanctuary where memory lingers in the woodwork, rain carries old promises, and every decision carves a different fate.
+            {t.hero.subtitle}
           </p>
 
           {/* Action Buttons */}
@@ -264,7 +301,7 @@ export default function LandingPage() {
               to="/register"
               className="group flex w-full sm:w-auto items-center justify-center gap-3 rounded-lg border border-[#A33B42] bg-[#A33B42] px-8 py-3.5 text-base font-semibold text-[#F1EEE8] transition-all hover:bg-[#702B34] hover:shadow-[0_0_25px_rgba(163,59,66,0.6)]"
             >
-              <span>Begin Your Story</span>
+              <span>{t.hero.primaryCta}</span>
               <span className="text-[#C4AD88] transition-transform group-hover:translate-x-1">→</span>
             </Link>
 
@@ -272,7 +309,7 @@ export default function LandingPage() {
               href="#about"
               className="flex w-full sm:w-auto items-center justify-center gap-2 rounded-lg border border-white/15 bg-[#1B2228]/60 px-7 py-3.5 text-base font-medium text-[#D7DCE0] backdrop-blur-sm transition hover:border-[#C4AD88]/50 hover:bg-[#1B2228] hover:text-[#F1EEE8]"
             >
-              <span>Explore the World</span>
+              <span>{t.hero.secondaryCta}</span>
               <span className="text-xs text-[#858A8D]">↓</span>
             </a>
           </div>
@@ -830,6 +867,117 @@ export default function LandingPage() {
               Return to Sanctuary (Sign In)
             </Link>
           </div>
+        </div>
+      </section>
+
+      {/* ─────────────────────────────────────────────────────────────
+          8b. FEEDBACK FORM
+      ───────────────────────────────────────────────────────────── */}
+      <section id="feedback" className="py-24 px-6 bg-[#13181E]">
+        <div className="mx-auto max-w-2xl">
+          <div className="text-center mb-10">
+            <div className="text-xs uppercase tracking-[0.3em] text-[#A33B42] mb-3 font-sans-ui">幽玄 · 感想</div>
+            <h2 className="font-cinematic text-3xl font-bold tracking-wide text-[#F1EEE8] mb-4">{t.feedback.heading}</h2>
+            <p className="text-sm text-[#858A8D] leading-relaxed">
+              {t.feedback.subtitle}
+            </p>
+          </div>
+
+          {feedbackStatus === 'success' && (
+            <div className="mb-6 rounded-lg border border-[#C4AD88]/30 bg-[#C4AD88]/10 px-5 py-4 text-sm text-[#C4AD88] text-center">
+              {t.feedback.success}
+            </div>
+          )}
+          {feedbackStatus === 'rate_limit' && (
+            <div className="mb-6 rounded-lg border border-[#A33B42]/30 bg-[#A33B42]/10 px-5 py-4 text-sm text-[#E8A0A5] text-center">
+              {t.feedback.errorRate}
+            </div>
+          )}
+          {(feedbackStatus === 'error' || feedbackStatus === 'error_empty') && (
+            <div className="mb-6 rounded-lg border border-[#A33B42]/30 bg-[#A33B42]/10 px-5 py-4 text-sm text-[#E8A0A5] text-center">
+              {feedbackStatus === 'error_empty' ? t.feedback.errorEmpty : 'Failed to submit. Please try again.'}
+            </div>
+          )}
+
+          <form onSubmit={handleFeedbackSubmit} className="space-y-5">
+            <div>
+              <label className="block text-xs uppercase tracking-wider text-[#858A8D] mb-2">{t.feedback.typeLabel}</label>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                {[
+                  { value: 'Bug Report', label: t.feedback.types[0] },
+                  { value: 'Technical Issue', label: t.feedback.types[1] },
+                  { value: 'Suggestion', label: t.feedback.types[2] },
+                  { value: 'Other', label: t.feedback.types[3] },
+                ].map((opt) => (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    onClick={() => setFeedbackType(opt.value)}
+                    className={`rounded border px-3 py-2 text-xs transition text-left ${
+                      feedbackType === opt.value
+                        ? 'border-[#A33B42] bg-[#A33B42]/20 text-[#F1EEE8]'
+                        : 'border-white/10 text-[#858A8D] hover:border-white/20 hover:text-[#B5B2AC]'
+                    }`}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-xs uppercase tracking-wider text-[#858A8D] mb-2">{t.feedback.subjectLabel} *</label>
+              <input
+                type="text"
+                value={feedbackSubject}
+                onChange={(e) => setFeedbackSubject(e.target.value)}
+                placeholder={t.feedback.subjectPlaceholder}
+                className="w-full rounded-lg border border-white/10 bg-[#1B2228] px-4 py-2.5 text-sm text-[#F1EEE8] placeholder:text-[#555B61] focus:border-[#C4AD88]/40 focus:outline-none focus:ring-1 focus:ring-[#C4AD88]/20 transition"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs uppercase tracking-wider text-[#858A8D] mb-2">{t.feedback.messageLabel} *</label>
+              <textarea
+                value={feedbackMessage}
+                onChange={(e) => setFeedbackMessage(e.target.value)}
+                placeholder={t.feedback.messagePlaceholder}
+                rows={4}
+                className="w-full rounded-lg border border-white/10 bg-[#1B2228] px-4 py-2.5 text-sm text-[#F1EEE8] placeholder:text-[#555B61] focus:border-[#C4AD88]/40 focus:outline-none focus:ring-1 focus:ring-[#C4AD88]/20 transition resize-none"
+              />
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs uppercase tracking-wider text-[#858A8D] mb-2">{t.feedback.nameLabel}</label>
+                <input
+                  type="text"
+                  value={feedbackName}
+                  onChange={(e) => setFeedbackName(e.target.value)}
+                  placeholder={t.feedback.namePlaceholder}
+                  className="w-full rounded-lg border border-white/10 bg-[#1B2228] px-4 py-2.5 text-sm text-[#F1EEE8] placeholder:text-[#555B61] focus:border-[#C4AD88]/40 focus:outline-none transition"
+                />
+              </div>
+              <div>
+                <label className="block text-xs uppercase tracking-wider text-[#858A8D] mb-2">{t.feedback.emailLabel}</label>
+                <input
+                  type="email"
+                  value={feedbackEmail}
+                  onChange={(e) => setFeedbackEmail(e.target.value)}
+                  placeholder={t.feedback.emailPlaceholder}
+                  className="w-full rounded-lg border border-white/10 bg-[#1B2228] px-4 py-2.5 text-sm text-[#F1EEE8] placeholder:text-[#555B61] focus:border-[#C4AD88]/40 focus:outline-none transition"
+                />
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              disabled={feedbackSubmitting}
+              className="w-full rounded-lg border border-[#A33B42]/50 bg-[#A33B42] px-6 py-3 text-sm font-semibold text-[#F1EEE8] transition-all hover:bg-[#702B34] hover:shadow-[0_0_20px_rgba(163,59,66,0.4)] disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {feedbackSubmitting ? t.feedback.submitting : t.feedback.submit}
+            </button>
+          </form>
         </div>
       </section>
 

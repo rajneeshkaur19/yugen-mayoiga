@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { storiesApi, scenesApi, choicesApi, stateApi, endingsApi, aiApi, charactersApi } from '../api/client'
 import { useToast } from '../context/ToastContext'
+import { useLanguage } from '../context/LanguageContext'
 
 // Curated atmospheric artworks available as visual anchors
 const curatedAtmospheres = [
@@ -105,6 +106,7 @@ const lengthOptions = [
 
 export default function CreateStoryPage() {
   const { showToast } = useToast()
+  const { storyLanguage: ctxStoryLanguage, setStoryLanguage: setContextStoryLanguage, t } = useLanguage()
   const navigate = useNavigate()
 
   // Wizard Step (1 to 4)
@@ -118,7 +120,7 @@ export default function CreateStoryPage() {
   const [genre, setGenre] = useState('Mystery')
   const [tone, setTone] = useState('Melancholic')
   const [season, setSeason] = useState('Autumn')
-  const [storyLanguage, setStoryLanguage] = useState('English')
+  const [storyLanguage, setStoryLanguage] = useState(ctxStoryLanguage || 'English')
   const [length, setLength] = useState('medium')
 
   const [submitting, setSubmitting] = useState(false)
@@ -237,12 +239,16 @@ export default function CreateStoryPage() {
 
     try {
       // Determine cover image: use AI-generated URL for custom location if available
+      // Always persist cover image: use AI-generated URL for custom locations,
+      // or fall back to the selected curated setting image path.
       const coverImageUrl = (
         selectedSetting.id === 'custom-location' &&
         aiResponseInfo?.success &&
         aiResponseInfo?.image_url &&
         !aiResponseInfo.image_url.startsWith('/assets/')
-      ) ? aiResponseInfo.image_url : null
+      )
+        ? aiResponseInfo.image_url
+        : selectedSetting.image || null
 
       createdStory = await storiesApi.create({
         title: title.trim(),
@@ -741,10 +747,10 @@ export default function CreateStoryPage() {
         {/* Step Tabs Indicator */}
         <div className="mb-10 flex items-center justify-between border-b border-white/[0.08] pb-4 overflow-x-auto text-xs">
           {[
-            { num: 1, title: 'The World' },
-            { num: 2, title: 'The Nature' },
-            { num: 3, title: 'The Experience' },
-            { num: 4, title: 'Manifestation' },
+            { num: 1, title: t.create.step1 },
+            { num: 2, title: t.create.step2 },
+            { num: 3, title: t.create.step3 },
+            { num: 4, title: t.create.step4 },
           ].map((s) => (
             <button
               key={s.num}
@@ -1093,7 +1099,7 @@ export default function CreateStoryPage() {
             {/* Story Language Selection */}
             <div className="rounded-2xl border border-white/10 bg-[#171C21] p-6 sm:p-8 space-y-4">
               <label className="block text-xs uppercase tracking-wider text-[#C4AD88] font-mono">
-                Story Language
+                {t.create.languageLabel}
               </label>
               <div className="grid gap-3 sm:grid-cols-4">
                 {languageOptions.map((l) => {
@@ -1102,7 +1108,10 @@ export default function CreateStoryPage() {
                     <button
                       key={l.code}
                       type="button"
-                      onClick={() => setStoryLanguage(l.code)}
+                      onClick={() => {
+                        setStoryLanguage(l.code)
+                        setContextStoryLanguage(l.code)
+                      }}
                       className={`rounded-xl border p-4 text-left transition ${
                         isSelected
                           ? 'border-[#C4AD88] bg-[#1B2228] shadow-[0_0_15px_rgba(196,173,136,0.3)] ring-1 ring-[#C4AD88]'
@@ -1239,7 +1248,7 @@ export default function CreateStoryPage() {
                 onClick={handleManifestStory}
                 className="w-full sm:w-auto inline-flex items-center justify-center gap-3 rounded-xl border border-[#A33B42] bg-[#A33B42] px-10 py-4 text-base font-semibold text-[#F1EEE8] shadow-2xl hover:bg-[#702B34] transition hover:shadow-[0_0_30px_rgba(163,59,66,0.6)] disabled:opacity-50"
               >
-                <span>{submitting ? 'Manifesting Sanctuary...' : 'Enter This World'}</span>
+                <span>{submitting ? t.create.manifesting : t.create.manifest}</span>
                 <span className="text-[#C4AD88]">→</span>
               </button>
               <p className="text-[11px] text-[#858A8D] font-mono mt-3">
@@ -1260,14 +1269,14 @@ export default function CreateStoryPage() {
               className="flex items-center gap-2 rounded-lg border border-white/10 px-5 py-2.5 text-xs font-medium text-[#858A8D] hover:text-white transition"
             >
               <span>←</span>
-              <span>Back</span>
+              <span>{t.create.back}</span>
             </button>
           ) : (
             <Link
               to="/dashboard"
               className="flex items-center gap-2 text-xs text-[#858A8D] hover:text-white transition"
             >
-              Cancel & Exit
+              {t.create.backToDashboard}
             </Link>
           )}
 
@@ -1277,7 +1286,7 @@ export default function CreateStoryPage() {
               onClick={goToNextStep}
               className="flex items-center gap-2 rounded-lg border border-[#A33B42] bg-[#A33B42] px-7 py-2.5 text-xs font-semibold text-[#F1EEE8] hover:bg-[#702B34] transition shadow-[0_0_15px_rgba(163,59,66,0.4)]"
             >
-              <span>Next Step</span>
+              <span>{t.create.next}</span>
               <span>→</span>
             </button>
           )}
@@ -1423,9 +1432,15 @@ export default function CreateStoryPage() {
                     </span>
                   </div>
                   {aiResponseInfo?.success && (
-                    <span className="rounded bg-emerald-950/80 border border-emerald-500/40 px-2 py-0.5 text-[10px] font-mono text-emerald-400">
-                      ✓ AI Generated ({aiResponseInfo.provider})
-                    </span>
+                    aiResponseInfo.is_fallback ? (
+                      <span className="rounded bg-amber-950/80 border border-amber-500/40 px-2 py-0.5 text-[10px] font-mono text-amber-300">
+                        Curated Artwork ({aiResponseInfo.quota_exhausted ? 'AI Quota Exhausted' : 'Fallback'})
+                      </span>
+                    ) : (
+                      <span className="rounded bg-emerald-950/80 border border-emerald-500/40 px-2 py-0.5 text-[10px] font-mono text-emerald-400">
+                        ✓ {aiResponseInfo.source_type === 'cached' ? 'Cached AI Art' : 'AI Generated'} ({aiResponseInfo.provider})
+                      </span>
+                    )
                   )}
                 </div>
               </div>

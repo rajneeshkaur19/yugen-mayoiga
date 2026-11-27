@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { storiesApi, scenesApi, choicesApi, stateApi, actionApi, aiApi } from '../api/client'
 import { useToast } from '../context/ToastContext'
+import { useLanguage } from '../context/LanguageContext'
 
 import CharacterDossierModal from '../components/character/CharacterDossierModal'
 import MemoriesModal from '../components/memory/MemoriesModal'
@@ -68,6 +69,7 @@ function parseSceneContent(content = '') {
 export default function StoryReaderPage() {
   const { storyId } = useParams()
   const { showToast } = useToast()
+  const { t } = useLanguage()
 
   const [story, setStory] = useState(null)
   const [scenes, setScenes] = useState([])
@@ -444,7 +446,7 @@ export default function StoryReaderPage() {
       {sceneImageLoading && (
         <div className="fixed bottom-24 right-4 z-30 flex items-center gap-1.5 rounded-lg border border-white/10 bg-[#101317]/80 px-3 py-1.5 text-[10px] text-[#858A8D] backdrop-blur-sm">
           <span className="inline-block h-2 w-2 animate-spin rounded-full border border-[#C4AD88] border-t-transparent" />
-          Painting the scene…
+          {t.reader.paintingScene}
         </div>
       )}
 
@@ -470,7 +472,7 @@ export default function StoryReaderPage() {
                 YŪGEN MAYOIGA
               </span>
               <span className="text-[9px] uppercase tracking-widest text-[#858A8D] block font-mono">
-                Return to Archive
+                {t.reader.returnDashboard}
               </span>
             </div>
           </Link>
@@ -503,7 +505,7 @@ export default function StoryReaderPage() {
               <svg className="h-3.5 w-3.5 text-[#C4AD88]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
               </svg>
-              <span className="hidden sm:inline">Menu</span>
+              <span className="hidden sm:inline">{t.reader.menu}</span>
             </button>
           </div>
         </div>
@@ -848,7 +850,7 @@ export default function StoryReaderPage() {
               <svg className="h-4 w-4 text-[#C4AD88]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
               </svg>
-              <span>Characters</span>
+              <span>{t.reader.dossier}</span>
             </button>
 
             {/* 2. Memories */}
@@ -859,7 +861,7 @@ export default function StoryReaderPage() {
               <svg className="h-4 w-4 text-[#A33B42]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
               </svg>
-              <span>Memories</span>
+              <span>{t.reader.memories}</span>
             </button>
 
             {/* 3. Timeline */}
@@ -870,7 +872,7 @@ export default function StoryReaderPage() {
               <svg className="h-4 w-4 text-[#C4AD88]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
-              <span>Timeline</span>
+              <span>{t.reader.timeline}</span>
             </button>
 
             {/* 4. World State */}
@@ -881,7 +883,7 @@ export default function StoryReaderPage() {
               <svg className="h-4 w-4 text-[#D7DCE0]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
-              <span>World</span>
+              <span>{t.reader.worldState}</span>
             </button>
 
             {/* 5. Story Graph */}
@@ -892,7 +894,7 @@ export default function StoryReaderPage() {
               <svg className="h-4 w-4 text-[#A33B42]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
               </svg>
-              <span>Story Graph</span>
+              <span>{t.reader.storyGraph}</span>
             </button>
 
             {/* Subtle Yūgen Meter Pill */}

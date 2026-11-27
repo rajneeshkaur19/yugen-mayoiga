@@ -2,10 +2,12 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
+import { useLanguage } from '../context/LanguageContext'
 
 export default function RegisterPage() {
   const { register } = useAuth()
   const { showToast } = useToast()
+  const { t } = useLanguage()
   const navigate = useNavigate()
 
   const [username, setUsername] = useState('')
@@ -145,13 +147,13 @@ export default function RegisterPage() {
           {/* Header */}
           <div>
             <div className="inline-block rounded-md border border-[#A33B42]/30 bg-[#101317] px-2.5 py-0.5 text-[10px] font-mono uppercase tracking-wider text-[#A33B42] mb-2">
-              Create Account
+              {t.auth.registerBtn}
             </div>
             <h1 className="font-cinematic text-4xl font-semibold text-[#F1EEE8]">
-              Your story begins here.
+              {t.auth.registerTitle}
             </h1>
             <p className="mt-2 text-xs sm:text-sm text-[#858A8D] leading-relaxed">
-              Create an account. Enter the sanctuary of forgotten choices.
+              {t.auth.registerSubtitle}
             </p>
           </div>
 
@@ -160,7 +162,7 @@ export default function RegisterPage() {
             {/* Username */}
             <div>
               <label htmlFor="username" className="block text-xs uppercase tracking-wider text-[#C4AD88] font-mono mb-1.5">
-                Wanderer Username
+                {t.auth.username}
               </label>
               <input
                 id="username"
@@ -183,7 +185,7 @@ export default function RegisterPage() {
             {/* Email Address */}
             <div>
               <label htmlFor="email" className="block text-xs uppercase tracking-wider text-[#C4AD88] font-mono mb-1.5">
-                Email Address
+                {t.auth.email}
               </label>
               <input
                 id="email"
@@ -200,7 +202,7 @@ export default function RegisterPage() {
             {/* Password */}
             <div>
               <label htmlFor="password" className="block text-xs uppercase tracking-wider text-[#C4AD88] font-mono mb-1.5">
-                Password
+                {t.auth.password}
               </label>
               <div className="relative flex items-center">
                 <input
@@ -251,7 +253,7 @@ export default function RegisterPage() {
                 disabled={submitting}
                 className="w-full inline-flex items-center justify-center gap-2.5 rounded-xl border border-[#A33B42] bg-[#A33B42] py-3.5 px-6 text-sm font-semibold text-[#F1EEE8] shadow-lg hover:bg-[#702B34] transition hover:shadow-[0_0_20px_rgba(163,59,66,0.5)] disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <span>{submitting ? 'Creating Sanctuary Account...' : 'Create Account'}</span>
+                <span>{submitting ? 'Creating Sanctuary Account...' : t.auth.registerBtn}</span>
                 <span className="text-[#C4AD88]">→</span>
               </button>
             </div>
@@ -259,9 +261,9 @@ export default function RegisterPage() {
 
           {/* Switch to Login */}
           <div className="pt-4 border-t border-white/[0.08] text-center text-xs text-[#858A8D]">
-            <span>Already have an account? </span>
+            <span>{t.auth.hasAccount} </span>
             <Link to="/login" className="font-semibold text-[#C4AD88] hover:text-[#D9C9A8] transition">
-              Sign In →
+              {t.auth.signInBtn} →
             </Link>
           </div>
 
