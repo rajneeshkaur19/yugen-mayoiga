@@ -79,6 +79,11 @@ class Scene(Base):
         nullable=True,
     )
 
+    scene_image_url: Mapped[Optional[str]] = mapped_column(
+        String(500),
+        nullable=True,
+    )
+
     is_ending: Mapped[bool] = mapped_column(
         Boolean,
         nullable=False,

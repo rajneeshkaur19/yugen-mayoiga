@@ -1,4 +1,4 @@
-﻿from datetime import datetime
+from datetime import datetime
 from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -6,6 +6,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 StoryLength = Literal["short", "medium", "long"]
 StoryStatus = Literal["active", "completed", "abandoned"]
+StoryLanguage = Literal["English", "Japanese", "Hindi", "French"]
 
 
 class StoryCreate(BaseModel):
@@ -19,7 +20,8 @@ class StoryCreate(BaseModel):
     tone: str = Field(min_length=1, max_length=50)
     season: str = Field(min_length=1, max_length=30)
     length: StoryLength
-
+    story_language: StoryLanguage = "English"
+    cover_image_url: str | None = None
 
 class StoryUpdate(BaseModel):
     """Fields that can be updated in an existing story."""
@@ -32,6 +34,8 @@ class StoryUpdate(BaseModel):
     tone: str | None = Field(default=None, min_length=1, max_length=50)
     season: str | None = Field(default=None, min_length=1, max_length=30)
     length: StoryLength | None = None
+    story_language: StoryLanguage | None = None
+    cover_image_url: str | None = None
     status: StoryStatus | None = None
 
 
@@ -48,5 +52,8 @@ class StoryRead(BaseModel):
     tone: str
     season: str
     length: StoryLength
+    story_language: StoryLanguage = "English"
+    cover_image_url: str | None = None
+
     status: StoryStatus
     created_at: datetime

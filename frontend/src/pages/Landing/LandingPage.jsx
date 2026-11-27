@@ -7,7 +7,10 @@ export default function LandingPage() {
   const { user } = useAuth()
   const navigate = useNavigate()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-  const [selectedLanguage, setSelectedLanguage] = useState('EN')
+  const [selectedLanguage, setSelectedLanguage] = useState(() => {
+    const saved = localStorage.getItem('yugen_ui_language')
+    return ['EN', 'JA', 'HI', 'FR'].includes(saved) ? saved : 'EN'
+  })
   const [langMenuOpen, setLangMenuOpen] = useState(false)
   const [activeStoryPreview, setActiveStoryPreview] = useState(0)
 
@@ -16,7 +19,7 @@ export default function LandingPage() {
     { code: 'EN', label: 'English', native: 'English' },
     { code: 'JA', label: 'Japanese', native: '日本語' },
     { code: 'HI', label: 'Hindi', native: 'हिन्दी' },
-    { code: 'PA', label: 'Punjabi', native: 'ਪੰਜਾਬੀ' },
+    { code: 'FR', label: 'French', native: 'Français' },
   ]
 
   // If already authenticated and visits, give convenient jump or auto redirect

@@ -110,7 +110,7 @@ def update_hidden_variables(
     deltas_or_updates: dict[str, Any],
 ) -> dict[str, Any]:
     """Update hidden variables in story_states."""
-    state = get_or_create_story_state(db, story_id)
+    state = get_or_create_story_state(db, story_id, commit=False)
     curr = dict(state.hidden_variables)
     for k, v in deltas_or_updates.items():
         if k.endswith("_delta") and isinstance(v, (int, float)):
@@ -130,7 +130,7 @@ def update_yugen_meter(
     delta: int,
 ) -> int:
     """Adjust the Yūgen Meter (0-100) representing unresolved mystery."""
-    state = get_or_create_story_state(db, story_id)
+    state = get_or_create_story_state(db, story_id, commit=False)
     new_meter = clamp(state.yugen_meter + delta)
     state.yugen_meter = new_meter
     state.updated_at = datetime.now(timezone.utc)

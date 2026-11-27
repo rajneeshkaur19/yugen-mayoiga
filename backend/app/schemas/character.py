@@ -30,6 +30,9 @@ class CharacterCreate(BaseModel):
     role: str = Field(min_length=1, max_length=50)
     age: Optional[int] = Field(default=None, gt=0)
     background: str = Field(default="")
+    portrait_image_url: Optional[str] = None
+    visual_description: Optional[str] = None
+    visual_prompt_anchor: Optional[str] = None
     goals: list[Any] = Field(default_factory=list)
     fears: list[Any] = Field(default_factory=list)
     secrets: list[Any] = Field(default_factory=list)
@@ -43,6 +46,9 @@ class CharacterUpdate(BaseModel):
     role: Optional[str] = Field(default=None, min_length=1, max_length=50)
     age: Optional[int] = Field(default=None, gt=0)
     background: Optional[str] = None
+    portrait_image_url: Optional[str] = None
+    visual_description: Optional[str] = None
+    visual_prompt_anchor: Optional[str] = None
     goals: Optional[list[Any]] = None
     fears: Optional[list[Any]] = None
     secrets: Optional[list[Any]] = None
@@ -57,6 +63,9 @@ class CharacterRead(BaseModel):
     role: str
     age: Optional[int]
     background: str
+    portrait_image_url: Optional[str] = None
+    visual_description: Optional[str] = None
+    visual_prompt_anchor: Optional[str] = None
     goals: list[Any]
     fears: list[Any]
     secrets: list[Any]

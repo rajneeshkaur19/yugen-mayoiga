@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { storiesApi, scenesApi, choicesApi, stateApi, aiApi } from '../api/client'
+import { storiesApi, scenesApi, choicesApi, stateApi, endingsApi, aiApi, charactersApi } from '../api/client'
 import { useToast } from '../context/ToastContext'
 
 // Curated atmospheric artworks available as visual anchors
@@ -93,7 +93,7 @@ const languageOptions = [
   { code: 'English', label: 'English', native: 'English' },
   { code: 'Japanese', label: 'Japanese', native: '日本語' },
   { code: 'Hindi', label: 'Hindi', native: 'हिन्दी' },
-  { code: 'Punjabi', label: 'Punjabi', native: 'ਪੰਜਾਬੀ' },
+  { code: 'French', label: 'French', native: 'Français' },
 ]
 
 // Story Length options
@@ -236,6 +236,14 @@ export default function CreateStoryPage() {
     ).slice(0, 100)
 
     try {
+      // Determine cover image: use AI-generated URL for custom location if available
+      const coverImageUrl = (
+        selectedSetting.id === 'custom-location' &&
+        aiResponseInfo?.success &&
+        aiResponseInfo?.image_url &&
+        !aiResponseInfo.image_url.startsWith('/assets/')
+      ) ? aiResponseInfo.image_url : null
+
       createdStory = await storiesApi.create({
         title: title.trim(),
         genre,
@@ -243,98 +251,417 @@ export default function CreateStoryPage() {
         tone,
         season,
         length,
+        story_language: storyLanguage,
+        cover_image_url: coverImageUrl,
       })
 
-      // Generate seed scenes customized for chosen setting
-      const seedScenes = [
+      // Generate rich branching narrative graph customized for chosen parameters
+      const loc = locationName || 'The Secluded Sanctuary'
+      const storyTitle = title.trim()
+
+      const seedScenesData = [
         {
+          key: 'start',
           scene_number: 1,
-          location: locationName,
-          mood: `${tone} and mysterious`,
-          content: `${season} mist descends over ${locationName}. A single lantern flickers beneath the weathered eaves, though the estate has been silent for decades. On a cedar table rests a wax-sealed letter bearing your name. Somewhere beyond the garden, a temple bell rings once. You feel this sanctuary has been waiting for your footsteps.`,
+          location: loc,
+          mood: `${tone} and atmospheric`.slice(0, 50),
+          content: `${season} mist descends heavily over ${loc}. A single lantern flickers beneath the weathered cedar eaves, casting amber warmth onto rain-darkened boards. On a low table rests an unopened envelope sealed with crimson wax, inscribed with your name in delicate calligraphy. Somewhere beyond the garden, a temple bell rings once—its low chime reverberating through the mountain fog. This sanctuary seems to have anticipated your arrival.`,
           haiku: 'Mist gathers the past\nA lantern guards the silence\nFootsteps seek the truth',
           is_ending: false,
         },
         {
+          key: 'west_wing',
           scene_number: 2,
-          location: 'The Forgotten Corridor',
+          location: 'The Western Corridor',
           mood: 'Uneasy and nostalgic',
-          content: 'You follow the distant bell into the western wing. Beneath a cracked timetable, you discover a photograph of someone whose eyes seem strangely familiar. The ink on its back is still fresh: “Some doors unlock only when remembered.” A narrow staircase descends beneath the floorboards.',
+          content: 'The wooden floorboards whisper softly beneath your steps. A cracked timetable hangs beside a tarnished mirror, its silvered glass reflecting shadows that linger a second too long. Tucked behind the frame, you discover an old black-and-white photograph of someone whose eyes seem hauntingly familiar. On the reverse, written in still-damp ink: “Some thresholds unlock only when remembered.” A narrow staircase descends toward the cellar, while a papered shoji screen opens toward the hearth chamber.',
           haiku: 'Beneath fading signs\nOld memories stir below\nThe dark holds its breath',
           is_ending: false,
         },
         {
+          key: 'hearth_room',
           scene_number: 3,
-          location: 'The Hearth Room',
-          mood: 'Intimate and uncertain',
-          content: 'You unfold the letter beside the glowing embers. It recounts a vow made here long ago, and a name you had once tried to erase. A small brass key slips from the envelope. Behind the sliding screens, a hidden latch clicks open.',
+          location: 'The Hearth Chamber',
+          mood: 'Intimate and veiled',
+          content: 'Embers pulse with gentle warmth inside the sunken irori hearth. As you unfold the parchment beside the fire, the delicate script recounts a vow made here decades ago—a solemn promise to guard this sanctuary from those who would forget its purpose. A small brass key intricately carved in the shape of a crane slips from the envelope. Behind the sliding screens, an ancient lock mechanism awaits.',
           haiku: 'A letter unfolds\nThe past waits in the shadows\nOne key turns slowly',
           is_ending: false,
         },
         {
+          key: 'perimeter_garden',
           scene_number: 4,
-          location: 'Where the Mists Dissolve',
+          location: 'The Boundary Garden',
           mood: 'Quiet and contemplative',
-          content: 'The divergent paths lead to the same quiet chamber. The distant bell falls silent. Before you rests a final inscription: “The truth was never lost. It was waiting for you to choose what it means.” Dawn begins to color the sliding paper windows. For the first time, Mayoiga feels at peace. Your journey ends here, but its echo remains yours.',
+          content: 'Cold night air carries the scent of pine needles, wet moss, and mountain earth. A stone lantern guides you along a winding gravel path beside a still reflection pond. At an arched bridge, a wooden signpost stands half-buried in fallen leaves. One route leads deeper into the secluded archives, while another climbs toward the moonlit observation veranda.',
+          haiku: 'Rain on stone pathways\nWater mirrors quiet skies\nTwo paths wait ahead',
+          is_ending: false,
+        },
+        {
+          key: 'cellar_archive',
+          scene_number: 5,
+          location: 'The Shadowed Archive',
+          mood: 'Suspenseful and revelatory',
+          content: 'Stone steps descend into a quiet chamber carved directly into mountain bedrock. Shelves of hand-bound chronicles, ancestral lineage scrolls, and sealed lacquer chests line the walls. An open journal on a reading pedestal describes Mayoiga not as a wandering phantom, but as a liminal sanctuary granted to those who carry unresolved vows. A highlighted passage references your exact family crest.',
+          haiku: 'Ink on ancient scrolls\nThe lineage of silence\nTruth awakens here',
+          is_ending: false,
+        },
+        {
+          key: 'inner_sanctum',
+          scene_number: 6,
+          location: 'The Inner Sanctum',
+          mood: 'Profound and resonant',
+          content: 'You step into a grand hall of tatami and polished cedar beams. At the far alcove stands a ceremonial altar surrounded by unlit paper lanterns. Above it hangs a calligraphy scroll reading: “Yūgen—The subtle beauty of mysteries left unsolved.” As your footsteps cross the central threshold, the lanterns begin to glow one by one with a warm, welcoming luminescence. You now hold the power to decide the fate of this sanctuary.',
+          haiku: 'Lanterns bloom in dark\nA choice echoes in the hall\nDawn awaits your word',
+          is_ending: false,
+        },
+        {
+          key: 'ending_truth',
+          scene_number: 7,
+          location: 'The Unveiled Dawn',
+          mood: 'Serene and transcendent',
+          content: `The sliding paper screens glide open to the crisp morning air. Dawn breaks across the mountain ridge, scattering the fog into ribbons of gold. The distant temple bell tolls one final time—a clear, resonant note that settles deep in your chest. The mysteries of ${storyTitle} have not vanished; they have become part of who you are. Stepping past the threshold, you return to the world with a heart at peace.`,
           haiku: 'Dawn touches the eaves\nA quiet truth finds its home\nThe bell tolls no more',
+          is_ending: true,
+        },
+        {
+          key: 'ending_eternal',
+          scene_number: 8,
+          location: 'The Timeless Sanctuary',
+          mood: 'Mystical and eternal',
+          content: 'The warmth of the irori hearth spreads throughout the ancient estate. Outside, the autumn mist thickens into an impenetrable silver veil, sealing off the noisy world beyond. The letters, the photographs, the quiet corridors—they are no longer remnants of a forgotten past, but companions for the days to come. Mayoiga has found its protector, and you have found your home.',
+          haiku: 'Silver mists draw near\nThe hearth burns with steady warmth\nHome is found at last',
+          is_ending: true,
+        },
+        {
+          key: 'ending_twilight',
+          scene_number: 9,
+          location: 'Where the Mists Dissolve',
+          mood: 'Melancholic and contemplative',
+          content: `You stand at the boundary torii gate as twilight yields to morning grey. Behind you, the lights of ${loc} fade like embers into the mist. You hold the small brass crane key in your palm—tangible proof that this night was real. Some answers remain veiled in shadow, but the journey has indelibly changed you. Your journey ends here, but its echo remains yours.`,
+          haiku: 'Footsteps fade away\nA memory in the fog\nThe mountain stays still',
           is_ending: true,
         },
       ]
 
-      const scenes = []
-      for (const scene of seedScenes) {
-        const created = await scenesApi.create(createdStory.id, scene)
-        scenes.push(created)
+      // 1. Create all scenes in database and map key -> scene ID
+      const sceneIdMap = {}
+      for (const sceneData of seedScenesData) {
+        const { key, ...payload } = sceneData
+        const created = await scenesApi.create(createdStory.id, payload)
+        sceneIdMap[key] = created.id
       }
 
-      // Create initial branching choices
-      await choicesApi.create(createdStory.id, scenes[0].id, {
-        choice_text: 'Follow the distant temple bell deeper into the western wing.',
-        effects: {},
-        condition: null,
-        allow_loop: false,
-        sort_order: 0,
-        next_scene_id: scenes[1].id,
-      })
+      // 2. Define rich multi-branching choices with meaningful progression
+      const choiceLinks = [
+        // Scene 1: 3 distinct choices
+        {
+          from: 'start',
+          to: 'west_wing',
+          text: 'Follow the distant temple bell deeper toward the western wing.',
+          effects: { yugen_meter: 5 },
+          order: 0,
+        },
+        {
+          from: 'start',
+          to: 'hearth_room',
+          text: 'Open the wax-sealed letter beside the glowing embers.',
+          effects: { yugen_meter: -5 },
+          order: 1,
+        },
+        {
+          from: 'start',
+          to: 'perimeter_garden',
+          text: 'Step out onto the mossy engawa and scout the misty grounds.',
+          effects: { yugen_meter: 10 },
+          order: 2,
+        },
 
-      await choicesApi.create(createdStory.id, scenes[0].id, {
-        choice_text: 'Open the wax-sealed letter and discover who left it.',
-        effects: {},
-        condition: null,
-        allow_loop: false,
-        sort_order: 1,
-        next_scene_id: scenes[2].id,
-      })
+        // Scene 2 (west_wing): 2 choices
+        {
+          from: 'west_wing',
+          to: 'cellar_archive',
+          text: 'Descend the narrow staircase into the shadowed cellar archives.',
+          effects: { yugen_meter: 5 },
+          order: 0,
+        },
+        {
+          from: 'west_wing',
+          to: 'hearth_room',
+          text: 'Carry the old photograph toward the warmth of the hearth chamber.',
+          effects: { yugen_meter: -5 },
+          order: 1,
+        },
 
-      await choicesApi.create(createdStory.id, scenes[1].id, {
-        choice_text: 'Descend the narrow staircase and follow the shadow.',
-        effects: {},
-        condition: null,
-        allow_loop: false,
-        sort_order: 0,
-        next_scene_id: scenes[3].id,
-      })
+        // Scene 3 (hearth_room): 2 choices
+        {
+          from: 'hearth_room',
+          to: 'cellar_archive',
+          text: 'Search for where the brass crane key was forged in the lower archives.',
+          effects: { yugen_meter: 0 },
+          order: 0,
+        },
+        {
+          from: 'hearth_room',
+          to: 'perimeter_garden',
+          text: 'Take a bronze lantern out into the boundary gardens.',
+          effects: { yugen_meter: 5 },
+          order: 1,
+        },
 
-      await choicesApi.create(createdStory.id, scenes[2].id, {
-        choice_text: 'Use the brass key on the hidden sliding screen.',
-        effects: {},
-        condition: null,
-        allow_loop: false,
-        sort_order: 0,
-        next_scene_id: scenes[3].id,
-      })
+        // Scene 4 (perimeter_garden): 2 choices
+        {
+          from: 'perimeter_garden',
+          to: 'cellar_archive',
+          text: 'Inspect the stone foundation and enter the lower archive entrance.',
+          effects: { yugen_meter: -5 },
+          order: 0,
+        },
+        {
+          from: 'perimeter_garden',
+          to: 'inner_sanctum',
+          text: 'Cross the arched bridge toward the glowing inner sanctum.',
+          effects: { yugen_meter: 10 },
+          order: 1,
+        },
+
+        // Scene 5 (cellar_archive): 2 choices
+        {
+          from: 'cellar_archive',
+          to: 'inner_sanctum',
+          text: 'Ascend into the inner sanctum to confront the core truth of Mayoiga.',
+          effects: { hidden_truth_discovered: true, yugen_meter: -15 },
+          order: 0,
+        },
+        {
+          from: 'cellar_archive',
+          to: 'perimeter_garden',
+          text: 'Return to the open air and ponder the weight of the family scrolls.',
+          effects: { yugen_meter: 5 },
+          order: 1,
+        },
+
+        // Scene 6 (inner_sanctum): 3 climax choices leading to genuine endings
+        {
+          from: 'inner_sanctum',
+          to: 'ending_truth',
+          text: 'Unseal the sanctuary boundary and return to the waking world with peace.',
+          effects: { hidden_unveiled_dawn: true, hidden_truth_discovered: true, yugen_meter: -30 },
+          order: 0,
+        },
+        {
+          from: 'inner_sanctum',
+          to: 'ending_eternal',
+          text: 'Ignite the central keeper flame and accept your stewardship of Mayoiga.',
+          effects: { hidden_sanctuary_accepted: true, yugen_meter: 30 },
+          order: 1,
+        },
+        {
+          from: 'inner_sanctum',
+          to: 'ending_twilight',
+          text: 'Leave an offering upon the altar and walk quietly into the dawn mist.',
+          effects: { hidden_journey_concluded: true, yugen_meter: 0 },
+          order: 2,
+        },
+      ]
+
+      // 3. Create all choices linking the graph
+      for (const link of choiceLinks) {
+        await choicesApi.create(createdStory.id, sceneIdMap[link.from], {
+          choice_text: link.text,
+          effects: link.effects || {},
+          condition: null,
+          allow_loop: false,
+          sort_order: link.order,
+          next_scene_id: sceneIdMap[link.to],
+        })
+      }
+
+      // 4. Register formal story endings
+      const endingConfigs = [
+        {
+          name: 'The Unveiled Dawn',
+          conditions: { unveiled_dawn: true },
+          seal_text: 'Dawn of Remembrance',
+        },
+        {
+          name: 'The Timeless Sanctuary',
+          conditions: { sanctuary_accepted: true },
+          seal_text: 'Keeper of the Mist',
+        },
+        {
+          name: 'Where the Mists Dissolve',
+          conditions: { journey_concluded: true },
+          seal_text: 'Echo in the Fog',
+        },
+      ]
+      for (const endCfg of endingConfigs) {
+        try {
+          await endingsApi.create(createdStory.id, endCfg)
+        } catch {
+          // Non-blocking: endings creation is decorative/metadata
+        }
+      }
+
+      // 5. Seed setting-appropriate story cast if not already present
+      try {
+        const existingChars = await charactersApi.list(createdStory.id).catch(() => [])
+        if (!existingChars || existingChars.length === 0) {
+          const settingId = selectedSetting.id
+          let settingCharacters = []
+
+          if (settingId === 'mountain-shrine') {
+            settingCharacters = [
+              {
+                name: 'Chiyo',
+                role: 'The Shrine Guardian',
+                age: 22,
+                background: 'A solemn maiden who tends to the rain-soaked torii gate and weathered stone altars.',
+                visual_description: 'Rain-dampened vermilion and white shrine robes, braided obsidian hair, holding an unlit bronze ceremonial bell.',
+                visual_prompt_anchor: 'Shrine maiden in vermilion hakama, cedar forest background with mossy stone lantern',
+                goals: ['Keep the sacred barrier intact', 'Interpret the whispers in the rainfall'],
+                fears: ['The bell tolling without hands', 'Forgetting the forgotten deity\'s true name'],
+                secrets: ['She left the mountain five years ago but woke up back at the shrine gates with no memory of returning.'],
+              },
+              {
+                name: 'Kaito',
+                role: 'The Seeking Pilgrim',
+                age: 28,
+                background: 'A solitary traveler carrying a soaked bamboo hat and a tarnished heirloom amulet.',
+                visual_description: 'Worn indigo traveling coat, mud-flecked straw sandals, carrying a cloth-wrapped wooden staff.',
+                visual_prompt_anchor: 'Pilgrim traveler in indigo haori, weathered cedar trees and rain mist',
+                goals: ['Find the hidden mountain shrine before sunset', 'Uncover the vow recorded in his family journal'],
+                fears: ['Running out of oil before reaching shelter', 'Dying unknown on the mountain trail'],
+                secrets: ['The amulet he carries is cold to the touch and hums when thunder echoes.'],
+              },
+            ]
+          } else if (settingId === 'silent-station') {
+            settingCharacters = [
+              {
+                name: 'The Stationmaster',
+                role: 'Keeper of Departures',
+                age: 64,
+                background: 'An elderly attendant who has maintained the deserted platform timetable for over thirty years.',
+                visual_description: 'Faded navy Showa-era railway uniform, brass buttons worn smooth, holding a pocket watch with stopped hands.',
+                visual_prompt_anchor: 'Elderly railway attendant in vintage uniform, fog-covered train platform with vintage lantern',
+                goals: ['Announce every scheduled arrival faithfully', 'Ensure no passenger steps onto the phantom tracks'],
+                fears: ['The final train stopping and nobody boarding', 'Hearing footsteps from the abandoned tunnel'],
+                secrets: ['He no longer remembers which station this was before the mountain claimed the line.'],
+              },
+              {
+                name: 'Minato',
+                role: 'The Delayed Traveler',
+                age: 19,
+                background: 'A quiet youth sitting on a weathered wooden bench, clutching an undated return ticket.',
+                visual_description: 'Dark wool school coat, frayed scarf against the winter chill, watchful amber eyes.',
+                visual_prompt_anchor: 'Young passenger in dark coat, steam and fog on desolate wooden platform bench',
+                goals: ['Catch the train to the southern terminal', 'Deliver an unread letter to someone who may no longer exist'],
+                fears: ['Looking down at the ticket and finding the ink faded', 'The station lanterns extinguishing simultaneously'],
+                secrets: ['The date printed on his ticket matches the night thirty years ago when the railway ceased operations.'],
+              },
+            ]
+          } else if (settingId === 'forgotten-village') {
+            settingCharacters = [
+              {
+                name: 'Sachi',
+                role: 'The Village Weaver',
+                age: 24,
+                background: 'An artisan weaving silent cloth at a midnight wooden loom beneath empty eaves.',
+                visual_description: 'Deep navy kasuri kimono, hair pinned with polished boxwood, hands dyed with faint indigo stains.',
+                visual_prompt_anchor: 'Japanese weaver in traditional kasuri kimono, dark wooden machiya interior with thread spools',
+                goals: ['Finish the ceremonial shroud before the mountain fog rises', 'Keep the loom shuttle moving rhythmic and steady'],
+                fears: ['A thread snapping during the third chime', 'Seeing an unfamiliar face in the garden reflection pond'],
+                secrets: ['The silk she weaves is spun from spiderwebs gathered from Mayoiga’s forbidden attic.'],
+              },
+              {
+                name: 'Jin',
+                role: 'The Night Watchman',
+                age: 38,
+                background: 'Patrols the dark alleyways and cobblestones, striking two wooden clappers to mark the hours.',
+                visual_description: 'Heavy padded winter coat, straw rain cape, carrying a paper lantern that casts bird-shaped silhouettes.',
+                visual_prompt_anchor: 'Village watchman in straw cape holding amber paper lantern, misty cobblestone alley',
+                goals: ['Ensure every shoji door remains bolted until dawn', 'Track any footprints that do not belong to the living'],
+                fears: ['An echo answering his clappers from behind him', 'Finding a lantern lit in an abandoned house'],
+                secrets: ['He has not seen a sunrise in three years, yet he never grows tired.'],
+              },
+            ]
+          } else if (settingId === 'bamboo-grove') {
+            settingCharacters = [
+              {
+                name: 'Takeo',
+                role: 'The Forest Hermit',
+                age: 52,
+                background: 'A stoic carver who lives among towering bamboo stalks, whittling protective talismans.',
+                visual_description: 'Simple linen work tunic, weathered calloused hands, small carving chisel tucked into his sash.',
+                visual_prompt_anchor: 'Hermit woodcarver in linen tunic, green bamboo forest filtered with ethereal sunbeams',
+                goals: ['Carve seven talismans before the wind shifts', 'Protect the boundary stones from being overturned'],
+                fears: ['The bamboo stalks whispering in human voices', 'Waking up to find his talismans split in two'],
+                secrets: ['Each charm he carves holds the name of a traveler who entered the grove and never returned.'],
+              },
+              {
+                name: 'Shiori',
+                role: 'The Masked Maiden',
+                age: 20,
+                background: 'A graceful spirit-like figure wearing an antique porcelain kitsune mask.',
+                visual_description: 'White and pale green silk kimono patterned with autumn bamboo leaves, porcelain fox mask tilted to the side.',
+                visual_prompt_anchor: 'Mysterious maiden with antique kitsune mask, ethereal moonlit bamboo grove',
+                goals: ['Guide lost souls away from the cliff edge', 'Find the companion who gave her the porcelain mask'],
+                fears: ['Removing the mask and having no face beneath', 'The sound of dogs barking in the distance'],
+                secrets: ['She cannot speak her own name unless someone asks her in the middle of a thunderstorm.'],
+              },
+            ]
+          } else {
+            // Default: Mayoiga Manor / Custom Location
+            settingCharacters = [
+              {
+                name: 'Ren',
+                role: 'The Quiet Caretaker',
+                age: 25,
+                background: `The silent steward of ${loc}, attending to paper lanterns and cedar corridors without asking for gratitude.`,
+                visual_description: 'Dark grey formal haori over simple black kimono, tidy topknot, ink-stained fingertips, amber eyes.',
+                visual_prompt_anchor: 'Solemn youth in dark haori holding brass lantern, traditional Japanese tatami hallway background',
+                goals: ['Keep the hearth fire burning throughout the night', 'Ensure guests feel welcome without knowing why'],
+                fears: ['The oil in the irori running completely dry', 'A visitor attempting to break the sealed attic latch'],
+                secrets: ['He is bound to the estate by a promise made long before the current era.'],
+              },
+              {
+                name: 'Aoi',
+                role: 'The Wandering Archivist',
+                age: 23,
+                background: `An inquisitive chronicler who arrived at ${loc} years ago carrying missing lineage records.`,
+                visual_description: 'Layered indigo and cream kimono, spectacles resting on a silk cord, holding a leather-bound chronicle.',
+                visual_prompt_anchor: 'Studious archivist with spectacles and indigo kimono, paper scroll archive background',
+                goals: ['Complete the genealogy of Mayoiga\'s visitors', 'Discover the fate of the last family who lived here'],
+                fears: ['Ink fading from the scrolls overnight', 'Discovering her own name written in the book of the deceased'],
+                secrets: ['She suspects the protagonist was chosen by the estate long before this night began.'],
+              },
+            ]
+          }
+
+          for (const charData of settingCharacters) {
+            try {
+              await charactersApi.create(createdStory.id, charData)
+            } catch {
+              // Non-blocking
+            }
+          }
+        }
+      } catch {
+        // Non-blocking: character seeding shouldn't block story manifestation
+      }
 
       await stateApi.get(createdStory.id)
       showToast('Your chronicle has manifested. Entering the sanctuary...', 'success')
       navigate(`/stories/${createdStory.id}`, { replace: true })
     } catch (error) {
+      if (createdStory?.id) {
+        await storiesApi.delete(createdStory.id).catch(() => {})
+      }
       showToast(
         createdStory
-          ? `Story created, but initial scenes setup failed: ${error.message}. Open it from your library to play.`
+          ? `Initial story setup failed (${error.message}). Partial record was rolled back so you can try again.`
           : error.message || 'Unable to create your story.',
         'error'
       )
-      if (createdStory) navigate(`/stories/${createdStory.id}`)
     } finally {
       setSubmitting(false)
     }

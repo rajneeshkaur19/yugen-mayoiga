@@ -16,5 +16,8 @@ class LocationImageGenerateResponse(BaseModel):
     image_url: Optional[str] = None
     prompt_used: str
     provider: Optional[str] = None
+    source_type: str = "ai_generated"
+    is_fallback: bool = False
+    quota_exhausted: bool = False
     missing_config: Optional[str] = None
     message: str

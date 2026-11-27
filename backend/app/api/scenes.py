@@ -5,7 +5,9 @@ from sqlalchemy.orm import Session
 
 from backend.app.api.auth import get_current_user, get_db
 from backend.app.models.user import User
+from backend.app.schemas.ai import LocationImageGenerateResponse
 from backend.app.schemas.scene import SceneCreate, SceneRead, SceneUpdate
+from backend.app.services.image_generation_service import generate_scene_image
 from backend.app.services.scene_service import (
     create_scene,
     delete_scene,
@@ -101,3 +103,45 @@ def remove_scene(
     if not deleted:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Scene not found")
     return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+@router.post("/{scene_id}/generate-image", response_model=SceneRead, status_code=status.HTTP_200_OK)
+def generate_image_for_scene(
+    story_id: int,
+    scene_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Generate and persist an environmental image for the given scene.
+
+    If a scene_image_url is already set, the existing URL is returned immediately
+    without consuming AI quota. Force re-generation by patching scene_image_url=null first.
+    """
+    story = _require_story(story_id, current_user, db)
+    scene = get_scene(db, story_id, scene_id)
+    if scene is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Scene not found")
+
+    # Idempotent: return existing image without calling providers
+    if scene.scene_image_url:
+        return scene
+
+    result = generate_scene_image(
+        location=scene.location,
+        content=scene.content,
+        mood=scene.mood,
+        season=getattr(story, "season", None),
+        tone=getattr(story, "tone", None),
+        genre=getattr(story, "genre", None),
+    )
+
+    if result.success and result.image_url:
+        try:
+            scene.scene_image_url = result.image_url
+            db.commit()
+            db.refresh(scene)
+        except Exception:
+            db.rollback()
+            raise
+
+    return scene

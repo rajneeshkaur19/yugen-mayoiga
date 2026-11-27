@@ -5,9 +5,9 @@ import { useToast } from '../context/ToastContext'
 import { storiesApi } from '../api/client'
 
 /**
- * Maps stories to relevant environmental cover artwork.
+ * Maps stories to relevant environmental cover artwork with support for generated cover_image_url.
  */
-function getStoryCover(story) {
+function getStoryDefaultCover(story) {
   const title = (story?.title || '').toLowerCase()
   const genre = (story?.genre || '').toLowerCase()
 
@@ -27,6 +27,13 @@ function getStoryCover(story) {
     return '/assets/story-covers/cover-bamboo-forest.png'
   }
   return '/assets/story-covers/cover-lost-village.png'
+}
+
+function getStoryCover(story) {
+  if (story?.cover_image_url) {
+    return story.cover_image_url
+  }
+  return getStoryDefaultCover(story)
 }
 
 /**
@@ -130,7 +137,11 @@ export default function DashboardPage() {
   }, [stories, searchQuery, selectedFilter, sortBy])
 
   // Identify featured story for prominent continue card
-  const featuredStory = stories.length > 0 ? stories[0] : null
+  // MUST strictly select an active in-progress story so "Resume Active Journey"
+  // always opens an active playthrough, never a completed story's EndingScreen.
+  // If no stories are active (e.g. all are completed), featuredStory is null.
+  const featuredStory =
+    stories.find(s => s.status !== 'completed' && s.status !== 'abandoned') || null
 
   return (
     <div className="flex min-h-screen bg-[#101317] text-[#F1EEE8] font-sans selection:bg-[#A33B42] selection:text-white">
@@ -383,6 +394,10 @@ export default function DashboardPage() {
                   <img
                     src={getStoryCover(featuredStory)}
                     alt={featuredStory.title}
+                    onError={(e) => {
+                      e.currentTarget.onerror = null
+                      e.currentTarget.src = getStoryDefaultCover(featuredStory)
+                    }}
                     className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t md:bg-gradient-to-r from-[#171C21] via-transparent to-black/30" />
@@ -565,6 +580,10 @@ export default function DashboardPage() {
                     <img
                       src={getStoryCover(story)}
                       alt={story.title}
+                      onError={(e) => {
+                        e.currentTarget.onerror = null
+                        e.currentTarget.src = getStoryDefaultCover(story)
+                      }}
                       className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-[#171C21] via-transparent to-black/40" />
@@ -585,7 +604,13 @@ export default function DashboardPage() {
                     <div>
                       <div className="flex items-center justify-between text-[11px] text-[#858A8D] font-mono">
                         <span>{story.season || 'Autumn'} · {story.tone || 'Atmospheric'}</span>
-                        <span className="capitalize text-[#C4AD88]">{story.status || 'Active'}</span>
+                        {story.status === 'completed' ? (
+                          <span className="inline-flex items-center gap-1 rounded-full border border-[#C4AD88]/50 bg-[#C4AD88]/10 px-2 py-0.5 text-[10px] font-semibold text-[#C4AD88]">
+                            ✦ 完了
+                          </span>
+                        ) : (
+                          <span className="capitalize text-[#C4AD88]">{story.status || 'Active'}</span>
+                        )}
                       </div>
 
                       <Link to={`/stories/${story.id}`}>

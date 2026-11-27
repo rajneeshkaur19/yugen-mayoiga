@@ -35,3 +35,4 @@ __all__ = [
 ]
 
 from backend.app.models.password_reset_token import PasswordResetToken
+from backend.app.models.feedback import FeedbackSubmission

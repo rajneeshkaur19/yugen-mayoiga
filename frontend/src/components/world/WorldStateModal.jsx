@@ -79,7 +79,7 @@ export default function WorldStateModal({
     id,
     name: char.name || 'Unknown Entity',
     role: char.role || 'Companion',
-    emotions: char.emotions || { trust: 50, fear: 20, affection: 40, suspicion: 30 },
+    emotions: char.emotions || { fear: 50, anxiety: 50, anger: 50, sadness: 50, happiness: 50, trust: 50 },
   }))
 
   return (

@@ -18,10 +18,13 @@ Executes atomic state updates for a player choice or action in a single database
 
 from __future__ import annotations
 
+import time
 from typing import Any
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session
+
+from backend.app.core.timing import logger
 
 from algorithms.priority_events import PriorityEventManager, StoryEvent
 from algorithms.state_store import EMOTIONS, clamp
@@ -44,7 +47,33 @@ from backend.app.services.state_service import (
     update_hidden_variables,
     update_yugen_meter,
 )
+from backend.app.core.timing import pipeline_timer
 from backend.app.services.world_state_engine import update_world_state
+
+
+def _is_significant_action(
+    choice: Choice | None,
+    raw_effects: dict[str, Any],
+    current_scene_id: int,
+) -> bool:
+    """Determine whether an action warrants creating a permanent character memory."""
+    if raw_effects:
+        return True
+    if choice is not None and choice.next_scene_id is not None and choice.next_scene_id != current_scene_id:
+        return True
+    return False
+
+
+def _resolve_memory_status(raw_effects: dict[str, Any], emotional_weight: int) -> str:
+    """Resolve memory status preserving normal/cracked/gilded semantics."""
+    explicit = raw_effects.get("memory_status")
+    if explicit in ("normal", "cracked", "gilded"):
+        return explicit
+    if emotional_weight <= -40:
+        return "cracked"
+    if emotional_weight >= 40:
+        return "gilded"
+    return "normal"
 
 
 def process_story_action(
@@ -57,6 +86,7 @@ def process_story_action(
 ) -> dict[str, Any]:
     """Execute the integrated state update pipeline atomically inside one transaction."""
 
+    t0 = time.perf_counter()
     try:
         # 1. Verify story ownership
         story = db.scalar(
@@ -82,6 +112,11 @@ def process_story_action(
         if current_scene is None:
             raise ValueError(f"Current scene {current_scene_id} not found in story {story_id}.")
 
+        if story.status == "completed" or current_scene.is_ending:
+            raise ValueError(
+                f"Story {story_id} has already reached an ending and cannot accept further actions."
+            )
+
         # 3. Validate choice if provided
         choice: Choice | None = None
         if choice_id is not None:
@@ -96,6 +131,27 @@ def process_story_action(
                 raise ValueError(
                     f"Choice {choice_id} is not an available option for current scene {current_scene_id}."
                 )
+
+            if not choice.allow_loop:
+                prior_use = db.scalar(
+                    select(UserChoicesLog.id).where(
+                        UserChoicesLog.story_id == story_id,
+                        UserChoicesLog.choice_id == choice_id,
+                        UserChoicesLog.undone.is_(False),
+                    )
+                )
+                if prior_use is not None:
+                    raise ValueError(
+                        f"Choice {choice_id} has already been executed and cannot be repeated."
+                    )
+
+            if choice.condition and isinstance(choice.condition, dict):
+                pre_state = get_unified_story_state(db, story_id, include_hidden=True)
+                for cond_key, cond_rule in choice.condition.items():
+                    if not evaluate_condition_clause(cond_key, cond_rule, pre_state):
+                        raise ValueError(
+                            f"Choice {choice_id} prerequisites are not met ({cond_key})."
+                        )
 
         if choice is None and not free_text:
             raise ValueError("Either a choice_id or free_text action must be supplied.")
@@ -113,18 +169,21 @@ def process_story_action(
 
         # 6. Apply Emotion Updates & Decay
         emotion_deltas: dict[str, int] = {}
+        updated_emotion_chars: set[int] = set()
         if "emotions" in raw_effects and isinstance(raw_effects["emotions"], dict):
             for k, v in raw_effects["emotions"].items():
                 if isinstance(v, dict):
+                    cid = int(k)
                     record_character_emotions(
                         db,
                         story_id=story_id,
-                        character_id=int(k),
+                        character_id=cid,
                         scene_id=choice.next_scene_id if (choice and choice.next_scene_id) else current_scene_id,
                         turn_number=next_turn,
                         deltas=v,
                         decay=True,
                     )
+                    updated_emotion_chars.add(cid)
                 elif k in EMOTIONS and active_character_id is not None:
                     emotion_deltas[k] = int(v)
 
@@ -133,7 +192,9 @@ def process_story_action(
             if emo in raw_effects and isinstance(raw_effects[emo], (int, float)):
                 emotion_deltas[emo] = int(raw_effects[emo])
 
-        if active_character_id is not None:
+        if active_character_id is not None and (
+            active_character_id not in updated_emotion_chars or emotion_deltas
+        ):
             record_character_emotions(
                 db,
                 story_id=story_id,
@@ -141,7 +202,7 @@ def process_story_action(
                 scene_id=choice.next_scene_id if (choice and choice.next_scene_id) else current_scene_id,
                 turn_number=next_turn,
                 deltas=emotion_deltas,
-                decay=True,
+                decay=active_character_id not in updated_emotion_chars,
             )
 
         # 7. Apply Relationship Changes
@@ -152,8 +213,12 @@ def process_story_action(
                     apply_relationship_deltas(db, story_id, fc, tc, rel_deltas)
                 elif isinstance(rel_key, str) and "->" in rel_key:
                     parts = rel_key.split("->")
+                    if len(parts) != 2:
+                        raise ValueError(f"Invalid relationship key: {rel_key}")
                     fc, tc = int(parts[0].strip()), int(parts[1].strip())
                     apply_relationship_deltas(db, story_id, fc, tc, rel_deltas)
+                else:
+                    raise ValueError(f"Invalid relationship key: {rel_key}")
 
         # 8. Apply World State Modifications
         world_updates = raw_effects.get("world", {})
@@ -180,20 +245,39 @@ def process_story_action(
         if yugen_delta:
             update_yugen_meter(db, story_id, yugen_delta)
 
-        # 10. Create Memory
-        if active_character_id is not None:
-            memory_event = f"Selected: '{action_text}' in {current_scene.location}"
-            mem_record = Memory(
-                story_id=story_id,
-                character_id=active_character_id,
-                event=memory_event,
-                type="player_choice",
-                importance=int(raw_effects.get("memory_importance", 50)),
-                emotional_weight=int(raw_effects.get("emotional_weight", 0)),
-                status="normal",
-                created_turn=next_turn,
+        # 10. Create Permanent Memory only for significant decisions (with duplicate prevention)
+        if active_character_id is not None and _is_significant_action(
+            choice, raw_effects, current_scene_id
+        ):
+            memory_event = str(
+                raw_effects.get("memory_event")
+                or f"Selected: '{action_text}' in {current_scene.location}"
             )
-            db.add(mem_record)
+            existing_memory = db.scalar(
+                select(Memory.id).where(
+                    Memory.story_id == story_id,
+                    Memory.character_id == active_character_id,
+                    Memory.event == memory_event,
+                )
+            )
+            if existing_memory is None:
+                emotional_weight = int(raw_effects.get("emotional_weight", 0))
+                memory_status = _resolve_memory_status(raw_effects, emotional_weight)
+                memory_type = raw_effects.get("memory_type")
+                if memory_type not in ("short_term", "long_term", "emotional", "player_choice"):
+                    memory_type = "emotional" if abs(emotional_weight) >= 30 else "player_choice"
+
+                mem_record = Memory(
+                    story_id=story_id,
+                    character_id=active_character_id,
+                    event=memory_event,
+                    type=memory_type,
+                    importance=clamp(int(raw_effects.get("memory_importance", 50))),
+                    emotional_weight=max(-100, min(100, emotional_weight)),
+                    status=memory_status,
+                    created_turn=next_turn,
+                )
+                db.add(mem_record)
 
         # 11. Process scheduled events through the priority queue.
         due_events = list(
@@ -369,6 +453,9 @@ def process_story_action(
             db, story_id=story_id, user_id=user_id, current_state=unified_state
         )
 
+        if (dest_scene and dest_scene.is_ending) or achieved_endings:
+            story.status = "completed"
+
         # 14. Append to user_choices_log
         log_entry = UserChoicesLog(
             user_id=user_id,
@@ -386,6 +473,11 @@ def process_story_action(
         # Commit single atomic transaction
         db.commit()
         db.refresh(story_state)
+
+        logger.info(
+            f"[TIMING] Deterministic State Mutation (DB Transaction): {time.perf_counter() - t0:.3f}s | "
+            f"story_id={story_id} | turn={story_state.turn_number} | scene={story_state.current_scene_id}"
+        )
 
         # Build clean user response
         return {

@@ -14,6 +14,7 @@ class SceneCreate(BaseModel):
     location: str = Field(min_length=1, max_length=100)
     mood: str = Field(min_length=1, max_length=50)
     haiku: Optional[str] = None
+    scene_image_url: Optional[str] = None
     is_ending: bool = False
 
 
@@ -24,6 +25,7 @@ class SceneUpdate(BaseModel):
     location: Optional[str] = Field(default=None, min_length=1, max_length=100)
     mood: Optional[str] = Field(default=None, min_length=1, max_length=50)
     haiku: Optional[str] = None
+    scene_image_url: Optional[str] = None
     is_ending: Optional[bool] = None
 
 
@@ -37,5 +39,6 @@ class SceneRead(BaseModel):
     location: str
     mood: str
     haiku: Optional[str]
+    scene_image_url: Optional[str] = None
     is_ending: bool
     created_at: datetime
