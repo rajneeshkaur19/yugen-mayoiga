@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
+import { useLanguage } from '../context/LanguageContext'
 import { storiesApi } from '../api/client'
 
 /**
@@ -52,6 +53,7 @@ function getStoryKanji(story) {
 export default function DashboardPage() {
   const { user, logout } = useAuth()
   const { showToast } = useToast()
+  const { langCode, setLanguageCode, languages, t } = useLanguage()
   const navigate = useNavigate()
 
   const [stories, setStories] = useState([])
@@ -190,7 +192,7 @@ export default function DashboardPage() {
               <svg className="h-4 w-4 text-[#A33B42]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
               </svg>
-              <span>Create New Story</span>
+              <span>{t.dashboard.newStory}</span>
             </Link>
 
             {featuredStory && (
@@ -242,7 +244,7 @@ export default function DashboardPage() {
             <svg className="h-3.5 w-3.5 text-[#A33B42]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
             </svg>
-            <span>Sign Out</span>
+            <span>{t.dashboard.signOut}</span>
           </button>
         </div>
       </aside>
@@ -463,7 +465,7 @@ export default function DashboardPage() {
             <div>
               <p className="text-xs uppercase tracking-widest text-[#C4AD88] font-mono">Archive Collection</p>
               <h2 className="font-cinematic text-3xl font-semibold text-[#F1EEE8] mt-1">
-                Your Stories
+                {t.dashboard.title}
               </h2>
             </div>
 
@@ -473,7 +475,7 @@ export default function DashboardPage() {
               <div className="relative">
                 <input
                   type="text"
-                  placeholder="Search chronicles..."
+                  placeholder={t.dashboard.searchPlaceholder}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="w-48 sm:w-60 rounded-lg border border-white/10 bg-[#101317] px-3.5 py-2 text-xs text-[#F1EEE8] placeholder-[#858A8D] outline-none focus:border-[#C4AD88]/50 transition"
@@ -513,7 +515,7 @@ export default function DashboardPage() {
                     : 'border border-white/5 bg-[#171C21] text-[#858A8D] hover:text-[#D7DCE0]'
                 }`}
               >
-                {f === 'all' ? 'All Stories' : f.replaceAll('-', ' ')}
+                {f === 'all' ? t.dashboard.filterAll : f === 'in-progress' ? t.dashboard.filterActive : f === 'completed' ? t.dashboard.filterCompleted : f}
               </button>
             ))}
           </div>
@@ -522,7 +524,7 @@ export default function DashboardPage() {
           {loading && (
             <div className="py-24 text-center">
               <div className="inline-block h-4 w-4 rounded-full bg-[#A33B42] animate-ping" />
-              <p className="mt-4 font-cinematic text-xl text-[#858A8D]">Opening the sanctuary archive...</p>
+              <p className="mt-4 font-cinematic text-xl text-[#858A8D]">{t.dashboard.loading}</p>
             </div>
           )}
 
@@ -668,7 +670,7 @@ export default function DashboardPage() {
                 </svg>
               </div>
               <h3 className="font-cinematic text-2xl font-semibold text-[#F1EEE8]">
-                Dissolve Chronicle?
+                {t.dashboard.deleteTitle}
               </h3>
             </div>
 
@@ -683,7 +685,7 @@ export default function DashboardPage() {
                 onClick={() => setDeletingStory(null)}
                 className="rounded-lg border border-white/10 px-4 py-2 text-xs text-[#858A8D] hover:text-white transition"
               >
-                Keep Story
+                {t.dashboard.cancel}
               </button>
               <button
                 type="button"
@@ -691,7 +693,7 @@ export default function DashboardPage() {
                 onClick={confirmDelete}
                 className="rounded-lg border border-[#A33B42] bg-[#A33B42] px-5 py-2 text-xs font-semibold text-white hover:bg-[#702B34] transition disabled:opacity-50"
               >
-                {isDeleting ? 'Dissolving...' : 'Permanently Delete'}
+                {isDeleting ? 'Dissolving...' : t.dashboard.deleteConfirm}
               </button>
             </div>
           </div>
@@ -717,8 +719,23 @@ export default function DashboardPage() {
                 <span className="font-mono text-[#C4AD88]">Obsidian Dark (Active)</span>
               </div>
               <div className="flex justify-between items-center p-3 rounded-lg border border-white/5 bg-[#101317]">
-                <span className="text-[#D7DCE0]">Language Typography</span>
-                <span className="font-mono text-[#C4AD88]">English · 日本語</span>
+                <span className="text-[#D7DCE0]">Language</span>
+                <div className="flex gap-1.5">
+                  {languages.map((l) => (
+                    <button
+                      key={l.code}
+                      type="button"
+                      onClick={() => setLanguageCode(l.code)}
+                      className={`rounded px-2 py-1 text-[11px] font-mono transition ${
+                        langCode === l.code
+                          ? 'bg-[#A33B42] text-white'
+                          : 'bg-[#1B2228] text-[#858A8D] hover:text-white'
+                      }`}
+                    >
+                      {l.code}
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
 

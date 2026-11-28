@@ -2,10 +2,12 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
+import { useLanguage } from '../context/LanguageContext'
 
 export default function LoginPage() {
   const { login } = useAuth()
   const { showToast } = useToast()
+  const { t } = useLanguage()
   const navigate = useNavigate()
 
   const [email, setEmail] = useState('')
@@ -122,13 +124,13 @@ export default function LoginPage() {
           {/* Header */}
           <div>
             <div className="inline-block rounded-md border border-[#C4AD88]/20 bg-[#101317] px-2.5 py-0.5 text-[10px] font-mono uppercase tracking-wider text-[#C4AD88] mb-2">
-              Sign In
+              {t.auth.signInBtn}
             </div>
             <h1 className="font-cinematic text-4xl font-semibold text-[#F1EEE8]">
-              Welcome back.
+              {t.auth.signInTitle}
             </h1>
             <p className="mt-2 text-xs sm:text-sm text-[#858A8D] leading-relaxed">
-              Step across the threshold to continue where your choices left you.
+              {t.auth.signInSubtitle}
             </p>
           </div>
 
@@ -137,7 +139,7 @@ export default function LoginPage() {
             {/* Email Address */}
             <div>
               <label htmlFor="email" className="block text-xs uppercase tracking-wider text-[#C4AD88] font-mono mb-2">
-                Email Address
+                {t.auth.email}
               </label>
               <input
                 id="email"
@@ -155,13 +157,13 @@ export default function LoginPage() {
             <div>
               <div className="flex items-center justify-between mb-2">
                 <label htmlFor="password" className="block text-xs uppercase tracking-wider text-[#C4AD88] font-mono">
-                  Secret Key / Password
+                  {t.auth.password}
                 </label>
                 <Link
                   to="/forgot-password"
                   className="text-xs text-[#858A8D] hover:text-[#C4AD88] transition font-mono text-[11px]"
                 >
-                  Forgot password?
+                  {t.auth.forgotPassword}
                 </Link>
               </div>
 
@@ -193,16 +195,16 @@ export default function LoginPage() {
               disabled={submitting}
               className="w-full inline-flex items-center justify-center gap-2.5 rounded-xl border border-[#A33B42] bg-[#A33B42] py-3.5 px-6 text-sm font-semibold text-[#F1EEE8] shadow-lg hover:bg-[#702B34] transition hover:shadow-[0_0_20px_rgba(163,59,66,0.5)] disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <span>{submitting ? 'Entering the Sanctuary...' : 'Sign In'}</span>
+              <span>{submitting ? 'Entering the Sanctuary...' : t.auth.signInBtn}</span>
               <span className="text-[#C4AD88]">→</span>
             </button>
           </form>
 
           {/* Switch to Register */}
           <div className="pt-4 border-t border-white/[0.08] text-center text-xs text-[#858A8D]">
-            <span>New to Mayoiga? </span>
+            <span>{t.auth.noAccount} </span>
             <Link to="/register" className="font-semibold text-[#C4AD88] hover:text-[#D9C9A8] transition">
-              Create an account →
+              {t.auth.registerBtn} →
             </Link>
           </div>
 
